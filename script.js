@@ -1,25 +1,3 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Space Mini — Wave System Edition (Fixed)</title>
-  <style>
-    html, body { margin:0; height:100%; background:#05070c; color:#c8f6ff; font:16px/1.35 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    #wrap { display:grid; place-items:center; height:100%;
-      background: radial-gradient(1200px 700px at 20% 10%, #0a1630 0%, rgba(10,22,48,0) 60%),
-                  radial-gradient(1200px 700px at 80% 90%, #140a30 0%, rgba(20,10,48,0) 60%); }
-    canvas { background:#000; display:block; border-radius:16px; box-shadow:
-      0 0 0 1px rgba(0,255,255,.08) inset,
-      0 30px 80px rgba(0, 255, 255, .08),
-      0 0 120px rgba(120, 0, 255, .06);
-      cursor: default;
-    }
-  </style>
-</head>
-<body>
-  <div id="wrap"><canvas id="game" width="800" height="600"></canvas></div>
-  <script>
 /* ===========================
    Constants
    =========================== */
@@ -1562,6 +1540,4 @@ function makeAsteroid(x,y,r,v){
 }
 
 init();
-  </script>
-</body>
-</html>
+
