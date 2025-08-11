@@ -38,8 +38,9 @@ function loadGameState(){
     best = +s.best || 0; credits = +s.credits || 0; owned = new Set(Array.isArray(s.owned)?s.owned:['scout']);
     selectedShipId = SHIPS.some(sh=>sh.id===s.selectedShipId) ? s.selectedShipId : 'scout';
     difficulty = DIFFS[s.difficulty] ? s.difficulty : 'medium';
-    player = s.player || {x:WIDTH/2,y:HEIGHT-80,r:PLAYER_R,maxHp:110,hp:110,iTime:0,shield:0};
+    player = s.player || {x:WIDTH/2,y:HEIGHT-80,r:PLAYER_R,maxHp:110,hp:110,iTime:0,shield:0,rainbowTime:0};
     if (player.shield === undefined) player.shield = 0;
+    if (player.rainbowTime === undefined) player.rainbowTime = 0;
     bullets = Array.isArray(s.bullets)? s.bullets : [];
     asteroids = Array.isArray(s.asteroids)? s.asteroids : [];
     enemies = Array.isArray(s.enemies)? s.enemies : [];
