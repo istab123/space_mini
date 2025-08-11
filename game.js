@@ -27,6 +27,7 @@ let hangarReturn = 'mainmenu';
 // input
 const mouse = {x:0,y:0};
 let clickOnce = false;
+let touchActive = false;
 // audio & settings
 let audioCtx = null;
 let difficulty = 'medium';
@@ -47,11 +48,58 @@ function init(){
 
   loadProgress();
 
-  canvas.addEventListener('pointerdown', async ()=>{
+  canvas.addEventListener('pointerdown', async (e)=>{
     if (!clickOnce){ clickOnce = true; initAudio(); try{ await audioCtx.resume(); }catch{} refreshMusic(); }
+    if (e.pointerType !== 'mouse'){
+      const r = canvas.getBoundingClientRect();
+      mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
+      mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
+      if (state==='playing'){
+        touchActive = true;
+        keys.add('Space');
+        player.x = Math.max(PLAYER_R, Math.min(WIDTH-PLAYER_R, mouse.x));
+        player.y = Math.max(PLAYER_R, Math.min(HEIGHT-PLAYER_R, mouse.y));
+      }
+      if (state==='hangar'){
+        dragging = true; dragStartX = mouse.x; dragStartOff = hangarOffset; dragAccum = 0;
+      }
+    }
   });
 
+  canvas.addEventListener('pointermove', (e)=>{
+    if (e.pointerType !== 'mouse'){
+      const r = canvas.getBoundingClientRect();
+      mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
+      mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
+      if (touchActive && state==='playing'){
+        player.x = Math.max(PLAYER_R, Math.min(WIDTH-PLAYER_R, mouse.x));
+        player.y = Math.max(PLAYER_R, Math.min(HEIGHT-PLAYER_R, mouse.y));
+      }
+      if (state==='hangar' && dragging){
+        const dx = mouse.x - dragStartX;
+        hangarOffset = Math.max(0, dragStartOff - dx);
+        dragAccum += Math.abs(dx);
+      }
+    }
+  });
+  const endPointer = (e)=>{
+    if (e.pointerType !== 'mouse'){
+      if (state==='hangar'){ dragging = false; snapHangar(); }
+      touchActive = false; keys.delete('Space');
+    }
+  };
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+  canvas.addEventListener('pointerout', endPointer);
+
   canvas.addEventListener('click', ()=>{ clicks.t = performance.now(); });
+
+  canvas.addEventListener('mousedown', ()=>{
+    if (state==='hangar'){ dragging = true; dragStartX = mouse.x; dragStartOff = hangarOffset; dragAccum = 0; }
+  });
+  canvas.addEventListener('mouseup', ()=>{
+    if (state==='hangar'){ dragging = false; snapHangar(); }
+  });
 
   canvas.addEventListener('mousemove', (e)=>{
     const r = canvas.getBoundingClientRect();
@@ -62,12 +110,6 @@ function init(){
       hangarOffset = Math.max(0, dragStartOff - dx);
       dragAccum += Math.abs(dx);
     }
-  });
-  canvas.addEventListener('mousedown', ()=>{
-    if (state==='hangar'){ dragging = true; dragStartX = mouse.x; dragStartOff = hangarOffset; dragAccum = 0; }
-  });
-  canvas.addEventListener('mouseup', ()=>{
-    if (state==='hangar'){ dragging = false; snapHangar(); }
   });
 
   window.addEventListener('keydown', onKeyDown);
