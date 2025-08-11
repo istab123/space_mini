@@ -2,7 +2,7 @@
    Globals
    =========================== */
 let canvas, ctx, state = 'mainmenu';
-let player, bullets=[], asteroids=[], particles=[], trail=[], thrusterParticles=[];
+let player, bullets=[], asteroids=[], particles=[], trail=[], thrusterParticles=[], levelCompleteParticles=[];
 let enemies=[], enemyBullets=[];
 let keys = new Set();
 let lastShotAt = -999, elapsed = 0;
@@ -22,6 +22,7 @@ let selectedShipId = 'scout';
 // hangar
 let hangarOffset = 0, hangarTarget = 0, dragging = false, dragStartX = 0, dragStartOff = 0, dragAccum = 0;
 const CARD_W = 180, CARD_H = 200, CARD_GAP = 24;
+let hangarReturn = 'mainmenu';
 // input
 const mouse = {x:0,y:0};
 let clickOnce = false;
@@ -89,6 +90,7 @@ function loop(t){
 
   if (state === 'levelcomplete'){
     levelCompleteTime += dt;
+    updateLevelCompleteParticles(dt);
   }
 
   render();
@@ -109,7 +111,8 @@ function toMain(){
   hangarOffset = hangarTarget;
 }
 function validateSelected(){ if (!SHIPS.some(s=>s.id===selectedShipId)) selectedShipId='scout'; }
-function toHangar(){ validateSelected(); transitionTo('hangar'); }
+function toHangar(returnTo='mainmenu'){ validateSelected(); hangarReturn = returnTo; transitionTo('hangar'); }
+function backFromHangar(){ if (hangarReturn === 'levelcomplete') transitionTo('levelcomplete'); else toMain(); }
 function toSettings(){ transitionTo('settings'); }
 
 function resetGame(){
@@ -295,7 +298,29 @@ function nextWave(){
 let levelCompleteTime = 0;
 function showLevelComplete(){
   levelCompleteTime = 0;
+  levelCompleteParticles = [];
+  for (let i=0;i<40;i++){
+    const a = Math.random()*Math.PI*2;
+    const sp = randRange(60,140);
+    levelCompleteParticles.push({
+      x: WIDTH/2,
+      y: HEIGHT/2 - 80,
+      vx: Math.cos(a)*sp,
+      vy: Math.sin(a)*sp,
+      life: randRange(0.8,1.6),
+      maxLife: 1.6
+    });
+  }
   transitionTo('levelcomplete');
+}
+
+function updateLevelCompleteParticles(dt){
+  for (let p of levelCompleteParticles){
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.life -= dt;
+  }
+  levelCompleteParticles = levelCompleteParticles.filter(p=>p.life>0);
 }
 
 function proceedToNextLevel(){
@@ -329,7 +354,8 @@ function onKeyDown(e){
   if (k==='Escape'){
     if (state==='playing') return pauseGame();
     if (state==='paused') return resumeGame();
-    if (state==='hangar' || state==='settings') return toMain();
+    if (state==='hangar') return backFromHangar();
+    if (state==='settings') return toMain();
   }
 
   if (state==='playing'){
@@ -1147,7 +1173,7 @@ function drawHangar(){
   const focusIdx = Math.max(0, Math.min(SHIPS.length-1, Math.round(hangarTarget/step)));
   const focus = SHIPS[focusIdx];
 
-  drawButton(20, HEIGHT-48, 120, 40, 'Back', ()=>{ toMain(); });
+  drawButton(20, HEIGHT-48, 120, 40, 'Back', ()=>{ backFromHangar(); });
   const canBuy = !owned.has(focus.id) && credits >= focus.cost;
   drawButton(WIDTH/2 - 190, HEIGHT-100, 180, 44, owned.has(focus.id)?'Owned':`Buy (${focus.cost})`, ()=>{ tryBuy(focus); }, !canBuy && !owned.has(focus.id));
   drawButton(WIDTH/2 + 10, HEIGHT-100, 180, 44, 'Select', ()=>{ if (owned.has(focus.id)){ selectedShipId = focus.id; saveProgress(); } }, !owned.has(focus.id));
@@ -1239,23 +1265,39 @@ function drawLevelComplete(){
   ctx.fillStyle='rgba(0,0,10,0.65)';
   ctx.fillRect(0,0,WIDTH,HEIGHT);
 
+  const msg = currentLevel >= MAX_LEVELS ? 'Victory!' : `Level ${currentLevel} Complete!`;
+  const t = Math.min(levelCompleteTime, animDuration);
+  const scale = 1 + 0.1*Math.sin(t*4);
+
   ctx.save();
   ctx.textAlign='center';
   ctx.textBaseline='middle';
   ctx.fillStyle=COLORS.hud;
-
-  const msg = currentLevel >= MAX_LEVELS ? 'Victory!' : `Level ${currentLevel} Complete!`;
-  const t = Math.min(levelCompleteTime, animDuration);
-  const scale = 1 + 0.1*Math.sin(t*4);
   ctx.translate(WIDTH/2, HEIGHT/2 - 80);
   ctx.scale(scale, scale);
   ctx.font='bold 44px system-ui, sans-serif';
   ctx.fillText(msg, 0, 0);
   ctx.restore();
 
+  // Expanding ring
+  ctx.save();
+  ctx.strokeStyle = `rgba(180,220,255,${1 - t/animDuration})`;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(WIDTH/2, HEIGHT/2 - 80, t*60, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.restore();
+
+  // Sparkle particles
+  for (let p of levelCompleteParticles){
+    const a = p.life / p.maxLife;
+    ctx.fillStyle = `rgba(255,255,200,${a})`;
+    ctx.fillRect(p.x-2, p.y-2, 4, 4);
+  }
+
   if (showMenu){
     drawButton(WIDTH/2-110, HEIGHT/2 - 20, 220, 40, 'Main Menu', ()=>{ toMain(); });
-    drawButton(WIDTH/2-110, HEIGHT/2 + 30, 220, 40, 'Hangar', ()=>{ toHangar(); });
+    drawButton(WIDTH/2-110, HEIGHT/2 + 30, 220, 40, 'Hangar', ()=>{ toHangar('levelcomplete'); });
     drawButton(WIDTH/2-110, HEIGHT/2 + 80, 220, 40, 'Save Game', ()=>{ saveGameState(); });
     const disableNext = currentLevel >= MAX_LEVELS;
     drawButton(WIDTH/2-110, HEIGHT/2 + 130, 220, 40, 'Next Level', ()=>{ proceedToNextLevel(); }, disableNext);
