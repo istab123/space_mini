@@ -1,0 +1,23 @@
+{
+  "name": "space_mini",
+  "version": "1.0.0",
+  "description": "Space Mini packaged as an Electron desktop app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "test": "echo \"No tests\" && exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "space.mini",
+    "productName": "Space Mini"
+  }
+}
