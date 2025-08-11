@@ -73,9 +73,14 @@ const SHIPS = [
     stats:{ hp:200, speedMul:1.15, cooldownMul:0.55, bulletMul:1.15 },
     colors: { primary:'#ffaa00', secondary:'#cc7700', core:'#ffdd44', thruster:'#ffcc22' }
   },
-  { 
-    id:'aurora', name:'AURORA', cost:2000, 
+  {
+    id:'aurora', name:'AURORA', cost:2000,
     stats:{ hp:240, speedMul:1.22, cooldownMul:0.45, bulletMul:1.20 },
     colors: { primary:'#00ffaa', secondary:'#00cc77', core:'#55ffcc', thruster:'#22ffaa' }
+  },
+  {
+    id:'eclipse', name:'ECLIPSE', cost:3500,
+    stats:{ hp:280, speedMul:1.30, cooldownMul:0.35, bulletMul:1.25 },
+    colors: { primary:'#ff00aa', secondary:'#cc0088', core:'#ff55cc', thruster:'#ff0099' }
   },
 ];

@@ -763,14 +763,15 @@ function drawPlayer(){
   ctx.save();
   ctx.translate(x, y);
   
-  switch(ship.id){
-    case 'scout': drawScoutShip(colors); break;
-    case 'raptor': drawRaptorShip(colors); break;
-    case 'nova': drawNovaShip(colors); break;
-    case 'zenith': drawZenithShip(colors); break;
-    case 'aurora': drawAuroraShip(colors); break;
-    default: drawScoutShip(colors); break;
-  }
+    switch(ship.id){
+      case 'scout': drawScoutShip(colors); break;
+      case 'raptor': drawRaptorShip(colors); break;
+      case 'nova': drawNovaShip(colors); break;
+      case 'zenith': drawZenithShip(colors); break;
+      case 'aurora': drawAuroraShip(colors); break;
+      case 'eclipse': drawEclipseShip(colors); break;
+      default: drawScoutShip(colors); break;
+    }
   
   if (player.iTime > 0){ 
     ctx.globalAlpha = 0.6 + 0.4*Math.sin(elapsed*20); 
@@ -958,6 +959,41 @@ function drawAuroraShip(colors){
   ctx.fill();
 }
 
+function drawEclipseShip(colors){
+  ctx.shadowColor = colors.primary;
+  ctx.shadowBlur = 28;
+
+  ctx.fillStyle = colors.primary + '50';
+  ctx.strokeStyle = colors.primary;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -PLAYER_R*1.4);
+  ctx.lineTo(-PLAYER_R*0.8, -PLAYER_R*0.2);
+  ctx.lineTo(-PLAYER_R*0.6, PLAYER_R*0.6);
+  ctx.lineTo(-PLAYER_R*0.2, PLAYER_R*1.1);
+  ctx.lineTo(PLAYER_R*0.2, PLAYER_R*1.1);
+  ctx.lineTo(PLAYER_R*0.6, PLAYER_R*0.6);
+  ctx.lineTo(PLAYER_R*0.8, -PLAYER_R*0.2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  const phase = uiTime * 8;
+  ctx.strokeStyle = colors.secondary;
+  ctx.lineWidth = 1.5;
+  ctx.shadowBlur = 16;
+  ctx.beginPath();
+  ctx.arc(0, -PLAYER_R*0.1, PLAYER_R*0.9 + Math.sin(phase)*1.5, 0, Math.PI*2);
+  ctx.stroke();
+
+  ctx.fillStyle = colors.core;
+  ctx.shadowBlur = 25;
+  const coreSize = 5 + 1.5 * Math.sin(phase*1.3);
+  ctx.beginPath();
+  ctx.arc(0, 0, coreSize, 0, Math.PI*2);
+  ctx.fill();
+}
+
 function drawTrail(){
   ctx.save(); 
   const ship = getShip();
@@ -1115,11 +1151,12 @@ function drawShipCard(x,y,ship,focused){
   switch(ship.id){
     case 'scout': drawScoutShip(colors); break;
     case 'raptor': drawRaptorShip(colors); break;
-    case 'nova': drawNovaShip(colors); break;
-    case 'zenith': drawZenithShip(colors); break;
-    case 'aurora': drawAuroraShip(colors); break;
-    default: drawScoutShip(colors); break;
-  }
+      case 'nova': drawNovaShip(colors); break;
+      case 'zenith': drawZenithShip(colors); break;
+      case 'aurora': drawAuroraShip(colors); break;
+      case 'eclipse': drawEclipseShip(colors); break;
+      default: drawScoutShip(colors); break;
+    }
   
   ctx.restore();
 
