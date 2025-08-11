@@ -87,6 +87,10 @@ function loop(t){
     timeAccumulator += dt; while (timeAccumulator >= 1/60){ update(1/60); timeAccumulator -= 1/60; }
   }
 
+  if (state === 'levelcomplete'){
+    levelCompleteTime += dt;
+  }
+
   render();
   requestAnimationFrame(loop);
 }
@@ -282,15 +286,27 @@ function nextWave(){
     currentWave++;
     startWave();
   } else {
-    // Level completed
-    if (currentLevel < MAX_LEVELS){
-      currentLevel++;
-      currentWave = 1;
-      startWave();
-    } else {
-      // Game completed!
-      gameCompleted();
-    }
+    // Level completed - show completion screen
+    showLevelComplete();
+  }
+}
+
+// Show level completion animation and menu
+let levelCompleteTime = 0;
+function showLevelComplete(){
+  levelCompleteTime = 0;
+  transitionTo('levelcomplete');
+}
+
+function proceedToNextLevel(){
+  if (currentLevel < MAX_LEVELS){
+    currentLevel++;
+    currentWave = 1;
+    startWave();
+    transitionTo('playing');
+  } else {
+    // No more levels - trigger game completed sequence
+    gameCompleted();
   }
 }
 
@@ -637,6 +653,7 @@ function render(){
   if (state==='settings') drawSettings();
   if (state==='paused') drawPause();
   if (state==='gameover') drawGameOver();
+  if (state==='levelcomplete') drawLevelComplete();
 
   drawVignette();
   drawScanlines();
@@ -1211,6 +1228,37 @@ function drawToggleRow(centerX, y, items, active, onChoose){
     ctx.fillStyle=COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='16px system-ui, sans-serif'; ctx.fillText(it.label, x+W/2, y+H/2);
     if (hover && wasJustClicked()) onChoose(it.id);
     x += W+G;
+  }
+}
+
+function drawLevelComplete(){
+  // Animation phase for first 2 seconds
+  const animDuration = 2.0;
+  const showMenu = levelCompleteTime >= animDuration;
+
+  ctx.fillStyle='rgba(0,0,10,0.65)';
+  ctx.fillRect(0,0,WIDTH,HEIGHT);
+
+  ctx.save();
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillStyle=COLORS.hud;
+
+  const msg = currentLevel >= MAX_LEVELS ? 'Victory!' : `Level ${currentLevel} Complete!`;
+  const t = Math.min(levelCompleteTime, animDuration);
+  const scale = 1 + 0.1*Math.sin(t*4);
+  ctx.translate(WIDTH/2, HEIGHT/2 - 80);
+  ctx.scale(scale, scale);
+  ctx.font='bold 44px system-ui, sans-serif';
+  ctx.fillText(msg, 0, 0);
+  ctx.restore();
+
+  if (showMenu){
+    drawButton(WIDTH/2-110, HEIGHT/2 - 20, 220, 40, 'Main Menu', ()=>{ toMain(); });
+    drawButton(WIDTH/2-110, HEIGHT/2 + 30, 220, 40, 'Hangar', ()=>{ toHangar(); });
+    drawButton(WIDTH/2-110, HEIGHT/2 + 80, 220, 40, 'Save Game', ()=>{ saveGameState(); });
+    const disableNext = currentLevel >= MAX_LEVELS;
+    drawButton(WIDTH/2-110, HEIGHT/2 + 130, 220, 40, 'Next Level', ()=>{ proceedToNextLevel(); }, disableNext);
   }
 }
 
