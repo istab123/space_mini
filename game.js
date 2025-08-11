@@ -162,7 +162,7 @@ function resetGame(){
   bullets.length = 0; asteroids.length = 0; particles.length = 0; trail.length = 0; thrusterParticles.length = 0;
   enemies.length = 0; enemyBullets.length = 0; powerups.length = 0;
   const hp = getShip().stats.hp;
-  player = { x: WIDTH/2, y: HEIGHT - 80, r: PLAYER_R, maxHp: hp, hp: hp, iTime:0, shield:0 };
+  player = { x: WIDTH/2, y: HEIGHT - 80, r: PLAYER_R, maxHp: hp, hp: hp, iTime:0, shield:0, rainbowTime:0 };
   currentLevel = 1; currentWave = 1; waveState = 'preparing';
   elapsed = 0; waveTimer = 0; waveTransitionTimer = 0; spawnTimer = 0; lastEnemySpawn = 0;
   waveEnemiesKilled = 0; waveEnemiesTotal = 0;
@@ -433,9 +433,10 @@ function onKeyUp(e){
    =========================== */
 function update(dt){
   elapsed += dt;
-  
+
   // Update player invincibility frames (FIXED - moved here from checkCollisions)
   if (player.iTime > 0) player.iTime -= dt;
+  if (player.rainbowTime > 0){ player.rainbowTime -= dt; if (player.rainbowTime < 0) player.rainbowTime = 0; }
   
   updateWaveSystem(dt);
   handleInput(dt);
@@ -464,6 +465,7 @@ function update(dt){
     if (circleHit(player.x,player.y,player.r, p.x,p.y,p.r)){
       if (p.type === 'hp'){ player.hp = Math.min(player.maxHp, player.hp + 30); }
       else if (p.type === 'shield'){ player.shield = 2; }
+      else if (p.type === 'rainbow'){ player.rainbowTime = Math.max(player.rainbowTime, 5); }
       powerups.splice(i,1);
       playSfx(880,'sine',0.1,0.1);
     }
@@ -588,7 +590,13 @@ function checkCollisions(){
   for (let ai=asteroids.length-1; ai>=0; ai--){
     const a = asteroids[ai];
     if (circleHit(player.x,player.y,player.r, a.x,a.y,a.r)){
-      if (player.iTime<=0){
+      if (player.rainbowTime > 0){
+        asteroids.splice(ai,1);
+        waveEnemiesKilled++;
+        credits += 1; score += 10; saveProgress();
+        spawnExplosion(a.x,a.y, Math.max(8, Math.min(20, a.r/2)));
+        maybeDropPowerup(a.x, a.y);
+      } else if (player.iTime<=0){
         const dmg = asteroidDamage(a.r);
         if (player.shield > 0){
           player.shield--; player.iTime = 0.4;
@@ -602,12 +610,19 @@ function checkCollisions(){
       }
     }
   }
-  
+
   // Enemies vs player
   for (let ei=enemies.length-1; ei>=0; ei--){
     const e = enemies[ei];
     if (circleHit(player.x,player.y,player.r, e.x,e.y,e.size)){
-      if (player.iTime<=0){
+      if (player.rainbowTime > 0){
+        enemies.splice(ei,1);
+        waveEnemiesKilled++;
+        credits += Math.floor(e.score / 10);
+        score += e.score; saveProgress();
+        spawnExplosion(e.x,e.y, e.size);
+        maybeDropPowerup(e.x, e.y);
+      } else if (player.iTime<=0){
         const dmg = 30;
         if (player.shield > 0){
           player.shield--; player.iTime = 0.4;
@@ -620,12 +635,15 @@ function checkCollisions(){
       }
     }
   }
-  
+
   // Enemy bullets vs player
   for (let bi=enemyBullets.length-1; bi>=0; bi--){
     const b = enemyBullets[bi];
     if (circleHit(player.x,player.y,player.r, b.x,b.y,5)){
-      if (player.iTime<=0){
+      if (player.rainbowTime > 0){
+        enemyBullets.splice(bi,1);
+        spawnExplosion(b.x,b.y,10);
+      } else if (player.iTime<=0){
         enemyBullets.splice(bi,1);
         const dmg = 20;
         if (player.shield > 0){
@@ -669,7 +687,11 @@ function updateThrusterParticles(dt){
 
 function maybeDropPowerup(x, y){
   if (Math.random() < 0.1){
-    const type = Math.random() < 0.5 ? 'hp' : 'shield';
+    const r = Math.random();
+    let type;
+    if (r < 0.5) type = 'hp';
+    else if (r < 0.9) type = 'shield';
+    else type = 'rainbow';
     powerups.push({ x, y, vy: 80, r: 10, type });
   }
 }
@@ -685,13 +707,14 @@ function handleInput(dt){
   if (keys.has('ArrowUp')) dy -= 1;
   if (keys.has('ArrowDown')) dy += 1;
   if (dx||dy){ const inv=1/Math.hypot(dx,dy); dx*=inv; dy*=inv; }
-  player.x += dx * BASE_SPEED * getShip().stats.speedMul * dt;
-  player.y += dy * BASE_SPEED * getShip().stats.speedMul * dt;
+  const speedBoost = player.rainbowTime > 0 ? 1.5 : 1;
+  player.x += dx * BASE_SPEED * getShip().stats.speedMul * speedBoost * dt;
+  player.y += dy * BASE_SPEED * getShip().stats.speedMul * speedBoost * dt;
   player.x = Math.max(PLAYER_R, Math.min(WIDTH-PLAYER_R, player.x));
   player.y = Math.max(PLAYER_R, Math.min(HEIGHT-PLAYER_R, player.y));
 }
 function shoot(){
-  const cd = BASE_COOLDOWN * getShip().stats.cooldownMul;
+  const cd = BASE_COOLDOWN * getShip().stats.cooldownMul * (player.rainbowTime > 0 ? 0.5 : 1);
   if (elapsed - lastShotAt < cd) return;
   lastShotAt = elapsed; 
   bullets.push({ x: player.x, y: player.y - PLAYER_R - 2 });
@@ -740,10 +763,24 @@ function render(){
 
     // powerups
     for (let p of powerups){
-      ctx.fillStyle = p.type==='hp' ? '#5f5' : '#55f';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-      ctx.fill();
+      if (p.type === 'hp' || p.type === 'shield'){
+        ctx.fillStyle = p.type==='hp' ? '#5f5' : '#55f';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fill();
+      } else if (p.type === 'rainbow'){
+        const hue = (uiTime * 200) % 360;
+        ctx.fillStyle = `hsl(${hue},100%,60%)`;
+        ctx.beginPath();
+        for (let i=0;i<5;i++){
+          const ang = -Math.PI/2 + i*2*Math.PI/5;
+          ctx.lineTo(p.x + Math.cos(ang)*p.r, p.y + Math.sin(ang)*p.r);
+          const ang2 = ang + Math.PI/5;
+          ctx.lineTo(p.x + Math.cos(ang2)*p.r*0.5, p.y + Math.sin(ang2)*p.r*0.5);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
     }
 
     // particles
@@ -923,6 +960,18 @@ function drawPlayer(){
     ctx.arc(0,0,PLAYER_R+6,0,Math.PI*2);
     ctx.stroke();
     ctx.globalAlpha = 1;
+  }
+
+  if (player.rainbowTime > 0){
+    const hue = (uiTime * 360) % 360;
+    ctx.strokeStyle = `hsl(${hue},100%,60%)`;
+    ctx.lineWidth = 4;
+    ctx.shadowColor = ctx.strokeStyle;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(0,0,PLAYER_R+10,0,Math.PI*2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
   }
 
   ctx.restore();
@@ -1135,24 +1184,30 @@ function drawEclipseShip(colors){
 }
 
 function drawTrail(){
-  ctx.save(); 
+  ctx.save();
   const ship = getShip();
-  ctx.strokeStyle = ship.colors.primary + '60'; 
-  ctx.lineWidth = 3; 
+  ctx.lineWidth = 3;
   ctx.lineCap = 'round';
-  ctx.shadowColor = ship.colors.primary;
-  ctx.shadowBlur = 8;
-  
-  for (let i=1;i<trail.length;i++){ 
-    const a = trail[i-1], b = trail[i]; 
-    const t = i/trail.length; 
-    ctx.globalAlpha = t * 0.8; 
-    ctx.beginPath(); 
-    ctx.moveTo(a.x, a.y); 
-    ctx.lineTo(b.x, b.y); 
-    ctx.stroke(); 
+
+  for (let i=1;i<trail.length;i++){
+    const a = trail[i-1], b = trail[i];
+    const t = i/trail.length;
+    ctx.globalAlpha = t * 0.8;
+    if (player.rainbowTime > 0){
+      const hue = (uiTime*360 + t*360) % 360;
+      ctx.strokeStyle = `hsl(${hue},100%,60%)`;
+      ctx.shadowColor = ctx.strokeStyle;
+    } else {
+      ctx.strokeStyle = ship.colors.primary + '60';
+      ctx.shadowColor = ship.colors.primary;
+    }
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
   }
-  ctx.globalAlpha = 1; 
+  ctx.globalAlpha = 1;
   ctx.restore();
 }
 
