@@ -7,5 +7,6 @@ canvas { background:#000; display:block; border-radius:16px; box-shadow:
   0 30px 80px rgba(0, 255, 255, .08),
   0 0 120px rgba(120, 0, 255, .06);
   cursor: default;
+  touch-action: none;
 }
 
