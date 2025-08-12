@@ -1540,8 +1540,8 @@ function drawInfoBosses(){
   let y=160; ctx.fillText('Bosses',40,y); y+=20;
   ctx.font='14px system-ui, sans-serif'; ctx.textBaseline='middle';
   for (let boss of BOSSES){
-    y+=44;
-    drawBossPreview(boss.type,60,y-10);
+    y+=88;
+    drawBossPreview(boss.type,60,y-20);
     ctx.fillText(`${boss.name}: ${boss.desc}`,100,y);
   }
 }
@@ -1551,11 +1551,15 @@ function drawBossPreview(type,x,y){
   const size = info.size, color = info.color;
   ctx.save();
   ctx.translate(x,y);
-  ctx.fillStyle = color + '60';
+  ctx.rotate(Date.now()/1500);
+  const gradient = ctx.createRadialGradient(0,0,0,0,0,size);
+  gradient.addColorStop(0,color);
+  gradient.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = gradient;
   ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
   ctx.shadowColor = color;
-  ctx.shadowBlur = 10;
+  ctx.shadowBlur = 20;
 
   ctx.beginPath();
   ctx.moveTo(0,-size);
@@ -1610,7 +1614,7 @@ function drawBossPreview(type,x,y){
   }
 
   ctx.fillStyle = color;
-  ctx.shadowBlur = 8;
+  ctx.shadowBlur = 12;
   ctx.beginPath(); ctx.arc(-size*0.4, size*0.5, 3, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(size*0.4, size*0.5, 3, 0, Math.PI*2); ctx.fill();
   ctx.restore();
