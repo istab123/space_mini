@@ -24,7 +24,7 @@ const WAVE_TYPES = {
   MINIBOSS: 3
 };
 const WAVE_REWARDS = [50, 70, 100];
-const MAX_LEVELS = 5;
+const MAX_LEVELS = 9;
 const WAVES_PER_LEVEL = 3;
 
 // Ship upgrade system
@@ -50,6 +50,18 @@ const ENEMY_TYPES = {
   MINIBOSS: {
     hp: 300, speed: 60, size: 24, color: '#ff0000', shootCooldown: 0.5,
     bulletSpeed: 280, score: 200
+  },
+  BOSS3: {
+    hp: 600, speed: 50, size: 28, color: '#ff00ff', shootCooldown: 1.2,
+    bulletSpeed: 240, score: 500
+  },
+  BOSS6: {
+    hp: 900, speed: 45, size: 30, color: '#00ffaa', shootCooldown: 1.5,
+    bulletSpeed: 260, score: 800
+  },
+  BOSS9: {
+    hp: 1500, speed: 40, size: 34, color: '#ffff00', shootCooldown: 1.8,
+    bulletSpeed: 280, score: 1500
   }
 };
 

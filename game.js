@@ -302,25 +302,37 @@ function spawnWaveEnemy(){
 }
 
 function spawnMiniboss(){
-  const enemyData = ENEMY_TYPES.MINIBOSS;
+  let type = 'MINIBOSS';
+  let enemyData = ENEMY_TYPES.MINIBOSS;
+  if (currentLevel === 3){ type = 'BOSS3'; enemyData = ENEMY_TYPES.BOSS3; }
+  else if (currentLevel === 6){ type = 'BOSS6'; enemyData = ENEMY_TYPES.BOSS6; }
+  else if (currentLevel === 9){ type = 'BOSS9'; enemyData = ENEMY_TYPES.BOSS9; }
+
   const miniboss = {
-    type: 'MINIBOSS',
+    type,
     x: WIDTH / 2,
     y: -enemyData.size - 10,
     vx: 0,
-    vy: enemyData.speed * 0.5, // Slower approach
-    hp: enemyData.hp * (DIFFS[difficulty]?.healthMul || 1) * currentLevel,
-    maxHp: enemyData.hp * (DIFFS[difficulty]?.healthMul || 1) * currentLevel,
+    vy: enemyData.speed * 0.5,
+    hp: enemyData.hp * (DIFFS[difficulty]?.healthMul || 1),
+    maxHp: enemyData.hp * (DIFFS[difficulty]?.healthMul || 1),
     size: enemyData.size,
     color: enemyData.color,
     lastShot: 0,
     shootCooldown: enemyData.shootCooldown,
     bulletSpeed: enemyData.bulletSpeed,
-    score: enemyData.score * currentLevel,
+    score: enemyData.score,
     phase: 1,
-    movePattern: 0
+    movePattern: 0,
+    spawnTimer: 0
   };
-  
+
+  if (type === 'MINIBOSS'){
+    miniboss.hp *= currentLevel;
+    miniboss.maxHp *= currentLevel;
+    miniboss.score *= currentLevel;
+  }
+
   enemies.push(miniboss);
 }
 
@@ -472,7 +484,10 @@ function update(dt){
   
   // Update bullets
   for (let b of bullets){ b.y -= BULLET_SPEED * dt; }
-  for (let b of enemyBullets){ b.y += b.speed * dt; }
+  for (let b of enemyBullets){
+    if (b.vx !== undefined && b.vy !== undefined){ b.x += b.vx * dt; b.y += b.vy * dt; }
+    else b.y += b.speed * dt;
+  }
   
   // Update asteroids
   for (let a of asteroids){ a.y += a.v * dt; a.rot += a.rotV*dt; }
@@ -482,7 +497,7 @@ function update(dt){
   
   // Remove off-screen projectiles
   bullets = bullets.filter(b => b.y + (b.r || BULLET_R) >= -10);
-  enemyBullets = enemyBullets.filter(b => b.y - 5 <= HEIGHT + 10);
+  enemyBullets = enemyBullets.filter(b => b.y - 5 <= HEIGHT + 10 && b.y + 5 >= -10 && b.x >= -10 && b.x <= WIDTH + 10);
   asteroids = asteroids.filter(a => a.y - a.r <= HEIGHT + 10);
   enemies = enemies.filter(e => e.y - e.size <= HEIGHT + 20);
 
@@ -515,55 +530,78 @@ function updateEnemies(dt){
   for (let enemy of enemies){
     // Movement
     if (enemy.type === 'MINIBOSS'){
-      // Special miniboss movement patterns
       enemy.movePattern += dt;
-      if (enemy.y < 80){ // Move into position first
-        enemy.y += enemy.vy * dt;
-      } else {
-        // Side to side movement
+      if (enemy.y < 80){ enemy.y += enemy.vy * dt; }
+      else {
         enemy.vx = Math.sin(enemy.movePattern * 2) * 100;
         enemy.x += enemy.vx * dt;
         enemy.x = Math.max(enemy.size, Math.min(WIDTH - enemy.size, enemy.x));
       }
+    } else if (enemy.type === 'BOSS3'){
+      enemy.movePattern += dt;
+      if (enemy.y < 80){ enemy.y += enemy.vy * dt; }
+      else {
+        enemy.x = WIDTH/2 + Math.sin(enemy.movePattern) * 120;
+        enemy.y = 80 + Math.sin(enemy.movePattern*2) * 30;
+      }
+    } else if (enemy.type === 'BOSS6'){
+      enemy.movePattern += dt;
+      if (enemy.y < 90){ enemy.y += enemy.vy * dt; }
+      else {
+        enemy.vx = Math.cos(enemy.movePattern*2) * 140;
+        enemy.x += enemy.vx * dt;
+        enemy.x = Math.max(enemy.size, Math.min(WIDTH - enemy.size, enemy.x));
+      }
+    } else if (enemy.type === 'BOSS9'){
+      enemy.movePattern += dt;
+      if (enemy.y < 100){ enemy.y += enemy.vy * dt; }
+      else {
+        enemy.vx = Math.sin(enemy.movePattern*1.5) * 150;
+        enemy.x += enemy.vx * dt;
+        enemy.x = Math.max(enemy.size, Math.min(WIDTH - enemy.size, enemy.x));
+        if (enemy.phase === 1 && enemy.hp <= enemy.maxHp/2){ enemy.phase = 2; }
+      }
     } else {
-      // Normal enemy movement
       enemy.y += enemy.vy * dt;
-      
-      // Simple AI - move toward player horizontally
       if (enemy.type === 'INTERCEPTOR'){
         const dx = player.x - enemy.x;
         enemy.vx = Math.sign(dx) * 50;
         enemy.x += enemy.vx * dt;
       }
     }
-    
-    // Shooting
+
     enemy.lastShot += dt;
     if (enemy.lastShot >= enemy.shootCooldown && enemy.y > 0 && enemy.y < HEIGHT - 50){
       enemy.lastShot = 0;
-      
-      // Different shooting patterns
       if (enemy.type === 'MINIBOSS'){
-        // Spread shot
         for (let i = -1; i <= 1; i++){
-          enemyBullets.push({
-            x: enemy.x + i * 15,
-            y: enemy.y + enemy.size,
-            speed: enemy.bulletSpeed,
-            color: enemy.color
-          });
+          enemyBullets.push({ x: enemy.x + i * 15, y: enemy.y + enemy.size, speed: enemy.bulletSpeed, color: enemy.color });
+        }
+      } else if (enemy.type === 'BOSS3'){
+        for (let i=0;i<8;i++){
+          const ang = i*Math.PI/4;
+          enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(ang)*enemy.bulletSpeed, vy: Math.sin(ang)*enemy.bulletSpeed, color: enemy.color });
+        }
+      } else if (enemy.type === 'BOSS6'){
+        for (let i=-1;i<=1;i++){
+          const ang = Math.atan2(player.y - enemy.y, player.x - enemy.x) + i*0.2;
+          enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(ang)*enemy.bulletSpeed, vy: Math.sin(ang)*enemy.bulletSpeed, color: enemy.color });
+        }
+      } else if (enemy.type === 'BOSS9'){
+        if (enemy.phase === 1){
+          for (let i=-2;i<=2;i++){
+            enemyBullets.push({ x: enemy.x + i*10, y: enemy.y + enemy.size, vx: 0, vy: enemy.bulletSpeed, color: enemy.color });
+          }
+        } else {
+          for (let i=0;i<12;i++){
+            const ang = i*Math.PI/6;
+            enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(ang)*enemy.bulletSpeed, vy: Math.sin(ang)*enemy.bulletSpeed, color: enemy.color });
+          }
         }
       } else {
-        // Single shot
-        enemyBullets.push({
-          x: enemy.x,
-          y: enemy.y + enemy.size,
-          speed: enemy.bulletSpeed,
-          color: enemy.color
-        });
+        enemyBullets.push({ x: enemy.x, y: enemy.y + enemy.size, speed: enemy.bulletSpeed, color: enemy.color });
       }
-      
-      playSfx(300, 'square', 0.1, 0.08); // Enemy shoot sound
+      playSfx(300, 'square', 0.1, 0.08);
     }
   }
 }
@@ -862,8 +900,9 @@ function drawEnemy(enemy){
   ctx.save();
   ctx.translate(enemy.x, enemy.y);
   
-  // Health bar for miniboss
-  if (enemy.type === 'MINIBOSS'){
+  // Health bar for bosses
+  const isBoss = enemy.type === 'MINIBOSS' || enemy.type.startsWith('BOSS');
+  if (isBoss){
     const barW = 60, barH = 6;
     const pct = enemy.hp / enemy.maxHp;
     ctx.fillStyle = 'rgba(60,0,0,0.8)';
@@ -879,7 +918,7 @@ function drawEnemy(enemy){
   ctx.shadowColor = enemy.color;
   ctx.shadowBlur = 10;
   
-  if (enemy.type === 'MINIBOSS'){
+  if (isBoss){
     // Large diamond shape
     ctx.beginPath();
     ctx.moveTo(0, -enemy.size);
@@ -902,7 +941,7 @@ function drawEnemy(enemy){
   // Engine glow
   ctx.fillStyle = enemy.color;
   ctx.shadowBlur = 8;
-  if (enemy.type === 'MINIBOSS'){
+  if (isBoss){
     ctx.beginPath();
     ctx.arc(-enemy.size*0.4, enemy.size*0.5, 3, 0, Math.PI*2);
     ctx.fill();
@@ -1585,7 +1624,7 @@ function drawPause(){
   ctx.font='bold 44px system-ui, sans-serif'; ctx.fillText('Paused', WIDTH/2, HEIGHT/2 - 100);
   drawButton(WIDTH/2-110, HEIGHT/2 - 40, 220, 40, 'Resume', ()=>{ resumeGame(); });
   drawButton(WIDTH/2-110, HEIGHT/2 + 10, 220, 40, 'Save Game', ()=>{ saveGameState(); });
-  drawButton(WIDTH/2-110, HEIGHT/2 + 60, 220, 40, 'Hangar', ()=>{ toHangar(); });
+  drawButton(WIDTH/2-110, HEIGHT/2 + 60, 220, 40, 'Hangar', ()=>{ toHangar('paused'); });
   drawButton(WIDTH/2-110, HEIGHT/2 + 110, 220, 40, 'Main Menu', ()=>{ toMain(); });
 }
 function drawGameOver(){
