@@ -1374,7 +1374,7 @@ function drawHangar(){
 
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillStyle=COLORS.hud; ctx.font='bold 46px system-ui, sans-serif'; ctx.fillText('Hangar', WIDTH/2, 70);
-  ctx.font='16px system-ui, sans-serif'; ctx.fillText('Drag to browse • Click to select • Buy/Select • Start Game', WIDTH/2, 104);
+  ctx.font='16px system-ui, sans-serif'; ctx.fillText('Drag to browse • Click to select • Buy or Upgrade', WIDTH/2, 104);
 
   const step = CARD_W + CARD_GAP;
   const startX = WIDTH/2 - CARD_W/2;
@@ -1388,22 +1388,22 @@ function drawHangar(){
   const focusIdx = Math.max(0, Math.min(SHIPS.length-1, Math.round(hangarTarget/step)));
   const focus = SHIPS[focusIdx];
 
-  drawButton(20, HEIGHT-48, 120, 40, 'Back', ()=>{ backFromHangar(); });
-  const canBuy = !owned.has(focus.id) && credits >= focus.cost;
-  drawButton(WIDTH/2 - 190, HEIGHT-100, 180, 44, owned.has(focus.id)?'Owned':`Buy (${focus.cost})`, ()=>{ tryBuy(focus); }, !canBuy && !owned.has(focus.id));
-  drawButton(WIDTH/2 + 10, HEIGHT-100, 180, 44, 'Select', ()=>{ if (owned.has(focus.id)){ selectedShipId = focus.id; saveProgress(); } }, !owned.has(focus.id));
-  if (owned.has(focus.id)){
+  drawButton(20, HEIGHT-48, 120, 40, 'Back', ()=>{ backFromHangar(); }, false, true);
+
+  if (!owned.has(focus.id)) {
+    const canBuy = credits >= focus.cost;
+    drawButton(WIDTH/2 - 90, HEIGHT-100, 180, 44, `Buy (${focus.cost})`, ()=>{ tryBuy(focus); }, !canBuy);
+  } else {
     const lvl = shipLevels[focus.id] || 1;
     const next = lvl + 1;
     if (next <= MAX_SHIP_LEVEL){
       const cost = UPGRADE_COSTS[next] || 0;
       const canUp = credits >= cost;
-      drawButton(WIDTH/2 - 190, HEIGHT-150, 180, 44, `Upgrade (${cost})`, ()=>{ upgradeShip(focus); }, !canUp);
+      drawButton(WIDTH/2 - 90, HEIGHT-100, 180, 44, `Upgrade (${cost})`, ()=>{ upgradeShip(focus); }, !canUp);
     } else {
-      drawButton(WIDTH/2 - 190, HEIGHT-150, 180, 44, 'Max Level', ()=>{}, true);
+      drawButton(WIDTH/2 - 90, HEIGHT-100, 180, 44, 'Max Level', ()=>{}, true);
     }
   }
-  drawButton(WIDTH/2 - 100, HEIGHT-48, 200, 40, 'Start Game', ()=>{ if (owned.has(focus.id)){ selectedShipId = focus.id; startGame(); } });
 }
 function drawShipCard(x,y,ship,focused){
   const hover = mouse.x>=x && mouse.x<=x+CARD_W && mouse.y>=y && mouse.y<=y+CARD_H;
@@ -1463,11 +1463,13 @@ function wasJustClicked(){
 }
 
 const btns = [];
-function drawButton(x,y,w,h,label,fn,disabled=false){
+function drawButton(x,y,w,h,label,fn,disabled=false,bright=false){
   btns.push({x,y,w,h,fn,disabled});
   const hover = mouse.x>=x && mouse.x<=x+w && mouse.y>=y && mouse.y<=y+h;
   ctx.save(); ctx.globalAlpha = disabled?0.6:1;
-  ctx.fillStyle = hover && !disabled ? 'rgba(0,60,90,0.8)' : 'rgba(0,40,60,0.7)';
+  const base = bright ? 'rgba(0,60,90,0.7)' : 'rgba(0,40,60,0.7)';
+  const hoverCol = bright ? 'rgba(0,80,120,0.8)' : 'rgba(0,60,90,0.8)';
+  ctx.fillStyle = hover && !disabled ? hoverCol : base;
   ctx.strokeStyle = hover && !disabled ? '#aff' : 'rgba(155,255,255,0.35)'; ctx.lineWidth = hover?2:1.5; roundRect(x,y,w,h,12); ctx.fill(); ctx.stroke();
   ctx.fillStyle = COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='bold 18px system-ui, sans-serif'; ctx.fillText(label, x+w/2, y+h/2);
   ctx.restore();
