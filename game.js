@@ -166,6 +166,7 @@ function backFromHangar(){
   else transitionTo(hangarReturn);
 }
 function toSettings(){ transitionTo('settings'); }
+function toInfo(){ transitionTo('info'); }
 
 function resetGame(){
   bullets.length = 0; asteroids.length = 0; particles.length = 0; trail.length = 0; thrusterParticles.length = 0;
@@ -421,6 +422,7 @@ function onKeyDown(e){
     if (state==='paused') return resumeGame();
     if (state==='hangar') return backFromHangar();
     if (state==='settings') return toMain();
+    if (state==='info') return toMain();
   }
 
   if (state==='playing'){
@@ -886,6 +888,7 @@ function render(){
 
   drawHUD();
   if (state==='mainmenu') drawMainMenu();
+  if (state==='info') drawInfo();
   if (state==='hangar') drawHangar();
   if (state==='settings') drawSettings();
   if (state==='paused') drawPause();
@@ -1472,11 +1475,118 @@ function drawMainMenu(){
   drawButton(WIDTH/2-140, 276, 280, 44, hasSaveSlot()?'Load Game':'Load Game (empty)', ()=>{ const st=loadGameState(); if(st){ transitionTo(st); if(state==='levelcomplete') levelCompleteTime=3; } }, !hasSaveSlot());
   drawButton(WIDTH/2-140, 332, 280, 44, 'Settings', ()=>{ toSettings(); });
   drawButton(WIDTH/2-140, 388, 280, 44, 'Hangar', ()=>{ toHangar(); });
+  drawButton(WIDTH/2-140, 444, 280, 44, 'Info', ()=>{ toInfo(); });
 
   ctx.fillStyle='rgba(180,220,240,0.7)'; ctx.font='14px system-ui, sans-serif';
   ctx.fillText('5 Levels • 3 Waves Each • Epic Boss Battles', WIDTH/2, HEIGHT-40);
   ctx.fillText('Click once to enable audio', WIDTH/2, HEIGHT-20);
 }
+function drawInfo(){
+  ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=COLORS.hud;
+  ctx.font='bold 46px system-ui, sans-serif'; ctx.fillText('Info', WIDTH/2, 70);
+
+  ctx.textAlign='left'; ctx.font='bold 20px system-ui, sans-serif';
+  let y=110; ctx.fillText('Ships',40,y); y+=20;
+  ctx.font='14px system-ui, sans-serif'; ctx.textBaseline='middle';
+  for (let ship of SHIPS){
+    y+=34;
+    ctx.save(); ctx.translate(60,y-10); ctx.scale(0.7,0.7);
+    const colors=ship.colors;
+    switch(ship.id){
+      case 'scout': drawScoutShip(colors); break;
+      case 'raptor': drawRaptorShip(colors); break;
+      case 'nova': drawNovaShip(colors); break;
+      case 'zenith': drawZenithShip(colors); break;
+      case 'aurora': drawAuroraShip(colors); break;
+      case 'eclipse': drawEclipseShip(colors); break;
+      default: drawScoutShip(colors); break;
+    }
+    ctx.restore();
+    ctx.fillText(`${ship.name}: ${ship.desc}`,100,y);
+  }
+
+  y+=20; ctx.font='bold 20px system-ui, sans-serif'; ctx.fillText('Bosses',40,y); y+=20;
+  ctx.font='14px system-ui, sans-serif';
+  for (let boss of BOSSES){
+    y+=34;
+    drawBossPreview(boss.type,60,y-10);
+    ctx.fillText(`${boss.name}: ${boss.desc}`,100,y);
+  }
+
+  drawButton(WIDTH/2-100, HEIGHT-60, 200, 44, 'Back', ()=>{ toMain(); });
+}
+
+function drawBossPreview(type,x,y){
+  const info = ENEMY_TYPES[type];
+  const size = info.size, color = info.color;
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.fillStyle = color + '60';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 10;
+
+  ctx.beginPath();
+  ctx.moveTo(0,-size);
+  ctx.lineTo(-size*0.8,0);
+  ctx.lineTo(0,size);
+  ctx.lineTo(size*0.8,0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  if (type==='BOSS3'){
+    ctx.save();
+    ctx.strokeStyle='#fff';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    for (let i=0;i<3;i++){
+      const ang=i*2*Math.PI/3;
+      const r=size*1.1;
+      const x=Math.cos(ang)*r;
+      const y=Math.sin(ang)*r;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  } else if (type==='BOSS6'){
+    ctx.strokeStyle='#fff';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.arc(0,0,size*1.3,0,Math.PI*2);
+    ctx.stroke();
+  } else if (type==='BOSS9'){
+    ctx.save();
+    ctx.strokeStyle='#fff';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    for (let i=0;i<5;i++){
+      const ang=i*2*Math.PI/5;
+      const outerR=size*1.5;
+      const innerR=size*0.7;
+      const x1=Math.cos(ang)*outerR;
+      const y1=Math.sin(ang)*outerR;
+      const ang2=ang+Math.PI/5;
+      const x2=Math.cos(ang2)*innerR;
+      const y2=Math.sin(ang2)*innerR;
+      if (i===0) ctx.moveTo(x1,y1); else ctx.lineTo(x1,y1);
+      ctx.lineTo(x2,y2);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.fillStyle = color;
+  ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.arc(-size*0.4, size*0.5, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(size*0.4, size*0.5, 3, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
 function drawSettings(){
   ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=COLORS.hud;

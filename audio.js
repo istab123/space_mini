@@ -169,6 +169,6 @@ function stopMusic(){
   }, 700);
 }
 
-function wantMenuMusic(){ return ['mainmenu','hangar','settings','paused','gameover'].includes(state); }
+function wantMenuMusic(){ return ['mainmenu','hangar','settings','paused','gameover','info'].includes(state); }
 function refreshMusic(){ if (!musicOn){ stopMusic(); return; } if (wantMenuMusic()) startMusic(); else stopMusic(); }
 
