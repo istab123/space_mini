@@ -578,23 +578,23 @@ function updateEnemies(dt){
           enemyBullets.push({ x: enemy.x + i * 15, y: enemy.y + enemy.size, speed: enemy.bulletSpeed, color: enemy.color });
         }
       } else if (enemy.type === 'BOSS3'){
-        for (let i=0;i<8;i++){
-          const ang = i*Math.PI/4;
+        for (let i=0;i<12;i++){
+          const ang = i*Math.PI/6;
           enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(ang)*enemy.bulletSpeed, vy: Math.sin(ang)*enemy.bulletSpeed, color: enemy.color });
         }
       } else if (enemy.type === 'BOSS6'){
-        for (let i=-1;i<=1;i++){
-          const ang = Math.atan2(player.y - enemy.y, player.x - enemy.x) + i*0.2;
+        for (let i=-2;i<=2;i++){
+          const ang = Math.atan2(player.y - enemy.y, player.x - enemy.x) + i*0.15;
           enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(ang)*enemy.bulletSpeed, vy: Math.sin(ang)*enemy.bulletSpeed, color: enemy.color });
         }
       } else if (enemy.type === 'BOSS9'){
         if (enemy.phase === 1){
-          for (let i=-2;i<=2;i++){
-            enemyBullets.push({ x: enemy.x + i*10, y: enemy.y + enemy.size, vx: 0, vy: enemy.bulletSpeed, color: enemy.color });
+          for (let i=-3;i<=3;i++){
+            enemyBullets.push({ x: enemy.x + i*8, y: enemy.y + enemy.size, vx: 0, vy: enemy.bulletSpeed, color: enemy.color });
           }
         } else {
-          for (let i=0;i<12;i++){
-            const ang = i*Math.PI/6;
+          for (let i=0;i<16;i++){
+            const ang = i*Math.PI/8;
             enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(ang)*enemy.bulletSpeed, vy: Math.sin(ang)*enemy.bulletSpeed, color: enemy.color });
           }
         }
@@ -937,7 +937,54 @@ function drawEnemy(enemy){
   
   ctx.fill();
   ctx.stroke();
-  
+
+  // Extra boss visuals
+  if (enemy.type === 'BOSS3'){
+    ctx.save();
+    ctx.rotate(enemy.movePattern * 2);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i=0;i<3;i++){
+      const ang = i*2*Math.PI/3;
+      const r = enemy.size*1.1;
+      const x = Math.cos(ang)*r;
+      const y = Math.sin(ang)*r;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  } else if (enemy.type === 'BOSS6'){
+    const pulse = 1 + Math.sin(enemy.movePattern*3)*0.2;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0,0, enemy.size*1.3*pulse, 0, Math.PI*2);
+    ctx.stroke();
+  } else if (enemy.type === 'BOSS9'){
+    ctx.save();
+    ctx.rotate(enemy.movePattern);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i=0;i<5;i++){
+      const ang = i*2*Math.PI/5;
+      const outerR = enemy.size*1.5;
+      const innerR = enemy.size*0.7;
+      const x1 = Math.cos(ang)*outerR;
+      const y1 = Math.sin(ang)*outerR;
+      const ang2 = ang + Math.PI/5;
+      const x2 = Math.cos(ang2)*innerR;
+      const y2 = Math.sin(ang2)*innerR;
+      if (i===0) ctx.moveTo(x1,y1); else ctx.lineTo(x1,y1);
+      ctx.lineTo(x2,y2);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  }
+
   // Engine glow
   ctx.fillStyle = enemy.color;
   ctx.shadowBlur = 8;
