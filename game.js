@@ -161,7 +161,10 @@ function toMain(){
 }
 function validateSelected(){ if (!SHIPS.some(s=>s.id===selectedShipId)) selectedShipId='scout'; }
 function toHangar(returnTo='mainmenu'){ validateSelected(); hangarReturn = returnTo; transitionTo('hangar'); }
-function backFromHangar(){ if (hangarReturn === 'levelcomplete') transitionTo('levelcomplete'); else toMain(); }
+function backFromHangar(){
+  if (hangarReturn === 'mainmenu') toMain();
+  else transitionTo(hangarReturn);
+}
 function toSettings(){ transitionTo('settings'); }
 
 function resetGame(){
@@ -491,7 +494,7 @@ function update(dt){
     if (circleHit(player.x,player.y,player.r, p.x,p.y,p.r)){
       if (p.type === 'hp'){ player.hp = Math.min(player.maxHp, player.hp + 30); }
       else if (p.type === 'shield'){ player.shield = 2; }
-      else if (p.type === 'rainbow'){ player.rainbowTime = Math.max(player.rainbowTime, 5); }
+      else if (p.type === 'rainbow'){ player.rainbowTime = Math.max(player.rainbowTime, 8); }
       powerups.splice(i,1);
       playSfx(880,'sine',0.1,0.1);
     }
