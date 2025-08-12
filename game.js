@@ -691,16 +691,19 @@ function updateThrusterParticles(dt){
   if (keys.has('ArrowUp') || keys.has('ArrowLeft') || keys.has('ArrowRight') || keys.has('ArrowDown')){
     const ship = getShip();
     const colors = ship.colors;
-    for (let i = 0; i < 3; i++){
+    const level = ship.level || 1;
+    // Higher level ships emit more intense thruster particles.
+    const count = 3 + (level - 1); // 3,4,5 for lv1,2,3
+    for (let i = 0; i < count; i++){
       thrusterParticles.push({
         x: player.x + (Math.random() - 0.5) * 8,
         y: player.y + PLAYER_R + Math.random() * 4,
         vx: (Math.random() - 0.5) * 30,
-        vy: 60 + Math.random() * 40,
+        vy: 60 + Math.random() * 40 + (level - 1) * 20,
         life: 0.15 + Math.random() * 0.1,
         maxLife: 0.25,
-        color: colors.thruster,
-        size: 2 + Math.random() * 2
+        color: level >= 3 ? '#ffffff' : colors.thruster,
+        size: (2 + Math.random() * 2) * (1 + (level - 1) * 0.3)
       });
     }
   }
@@ -1023,18 +1026,54 @@ function drawPlayer(){
 }
 
 function drawShipExtras(level, colors){
+  // Ships gain extra visual flair as they are upgraded.  This makes
+  // progression much more visible to the player.
+
   if (level >= 2){
+    // Add small wing boosters on the sides plus an accent line.
     ctx.fillStyle = colors.secondary;
+
+    // left booster
+    ctx.beginPath();
+    ctx.moveTo(-PLAYER_R*0.8, PLAYER_R*0.1);
+    ctx.lineTo(-PLAYER_R*0.4, PLAYER_R*0.6);
+    ctx.lineTo(-PLAYER_R*0.3, PLAYER_R*0.1);
+    ctx.closePath();
+    ctx.fill();
+
+    // right booster
+    ctx.beginPath();
+    ctx.moveTo(PLAYER_R*0.8, PLAYER_R*0.1);
+    ctx.lineTo(PLAYER_R*0.4, PLAYER_R*0.6);
+    ctx.lineTo(PLAYER_R*0.3, PLAYER_R*0.1);
+    ctx.closePath();
+    ctx.fill();
+
+    // central accent stripe
     ctx.fillRect(-PLAYER_R*0.5, PLAYER_R*0.2, PLAYER_R, 2);
   }
+
   if (level >= 3){
+    // Highest level ships get an animated energy ring around them for a
+    // very noticeable upgrade.
+    const pulse = 0.6 + 0.4 * Math.sin(uiTime * 5);
     ctx.strokeStyle = colors.core;
     ctx.lineWidth = 2;
     ctx.shadowColor = colors.core;
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 12;
+    ctx.globalAlpha = 0.8;
     ctx.beginPath();
-    ctx.arc(0,0,PLAYER_R+6,0,Math.PI*2);
+    ctx.arc(0, 0, (PLAYER_R + 6) * pulse, 0, Math.PI * 2);
     ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+
+    // small glowing node near the nose
+    ctx.fillStyle = colors.core;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(0, -PLAYER_R * 0.3, 3, 0, Math.PI * 2);
+    ctx.fill();
     ctx.shadowBlur = 0;
   }
 }
