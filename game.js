@@ -40,6 +40,7 @@ let music = { started:false, nodes:[], time:0 };
 let shakeT=0, shakeA=0;
 // ui clock
 let uiTime = 0;
+let infoTab = 'general';
 
 /* ===========================
    Init
@@ -166,7 +167,7 @@ function backFromHangar(){
   else transitionTo(hangarReturn);
 }
 function toSettings(){ transitionTo('settings'); }
-function toInfo(){ transitionTo('info'); }
+function toInfo(){ infoTab = 'general'; transitionTo('info'); }
 
 function resetGame(){
   bullets.length = 0; asteroids.length = 0; particles.length = 0; trail.length = 0; thrusterParticles.length = 0;
@@ -1486,8 +1487,35 @@ function drawInfo(){
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=COLORS.hud;
   ctx.font='bold 46px system-ui, sans-serif'; ctx.fillText('Info', WIDTH/2, 70);
 
+  drawToggleRow(WIDTH/2, 120, [
+    {id:'general', label:'General'},
+    {id:'ships', label:'Ships'},
+    {id:'bosses', label:'Bosses'}
+  ], infoTab, (id)=>{ infoTab = id; });
+
+  if (infoTab==='general') drawInfoGeneral();
+  else if (infoTab==='ships') drawInfoShips();
+  else if (infoTab==='bosses') drawInfoBosses();
+
+  drawButton(WIDTH/2-100, HEIGHT-60, 200, 44, 'Back', ()=>{ toMain(); });
+}
+
+function drawInfoGeneral(){
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.font='16px system-ui, sans-serif';
+  const lines=[
+    'Use Arrow keys to move and Space to shoot.',
+    'Earn credits from enemies and spend them in the hangar.',
+    'Each level has three waves: asteroids, fighters and a boss.',
+    'Defeat bosses to advance and unlock tougher challenges.'
+  ];
+  let y=160;
+  for (let line of lines){ ctx.fillText(line,40,y); y+=24; }
+}
+
+function drawInfoShips(){
   ctx.textAlign='left'; ctx.font='bold 20px system-ui, sans-serif';
-  let y=110; ctx.fillText('Ships',40,y); y+=20;
+  let y=160; ctx.fillText('Ships',40,y); y+=20;
   ctx.font='14px system-ui, sans-serif'; ctx.textBaseline='middle';
   for (let ship of SHIPS){
     y+=34;
@@ -1505,16 +1533,17 @@ function drawInfo(){
     ctx.restore();
     ctx.fillText(`${ship.name}: ${ship.desc}`,100,y);
   }
+}
 
-  y+=20; ctx.font='bold 20px system-ui, sans-serif'; ctx.fillText('Bosses',40,y); y+=20;
-  ctx.font='14px system-ui, sans-serif';
+function drawInfoBosses(){
+  ctx.textAlign='left'; ctx.font='bold 20px system-ui, sans-serif';
+  let y=160; ctx.fillText('Bosses',40,y); y+=20;
+  ctx.font='14px system-ui, sans-serif'; ctx.textBaseline='middle';
   for (let boss of BOSSES){
     y+=34;
     drawBossPreview(boss.type,60,y-10);
     ctx.fillText(`${boss.name}: ${boss.desc}`,100,y);
   }
-
-  drawButton(WIDTH/2-100, HEIGHT-60, 200, 44, 'Back', ()=>{ toMain(); });
 }
 
 function drawBossPreview(type,x,y){
