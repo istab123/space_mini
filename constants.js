@@ -69,34 +69,47 @@ const ENEMY_TYPES = {
    Ships with Visual Designs
    =========================== */
 const SHIPS = [
-  { 
-    id:'scout', name:'SCOUT', cost:0, 
+  {
+    id:'scout', name:'SCOUT', cost:0,
+    desc:'Balanced starter ship.',
     stats:{ hp:110, speedMul:1.00, cooldownMul:1.00, bulletMul:1.00 },
     colors: { primary:'#00dcff', secondary:'#0099cc', core:'#66efff', thruster:'#00aaff' }
   },
-  { 
-    id:'raptor', name:'RAPTOR', cost:150, 
+  {
+    id:'raptor', name:'RAPTOR', cost:150,
+    desc:'Faster firing assault craft.',
     stats:{ hp:140, speedMul:1.05, cooldownMul:0.85, bulletMul:1.00 },
     colors: { primary:'#ff6600', secondary:'#cc4400', core:'#ffaa00', thruster:'#ff8800' }
   },
-  { 
-    id:'nova', name:'NOVA', cost:400, 
+  {
+    id:'nova', name:'NOVA', cost:400,
+    desc:'Upgraded cannons pack a punch.',
     stats:{ hp:170, speedMul:1.10, cooldownMul:0.70, bulletMul:1.10 },
     colors: { primary:'#aa00ff', secondary:'#6600aa', core:'#dd55ff', thruster:'#cc44ff' }
   },
-  { 
-    id:'zenith', name:'ZENITH', cost:1000, 
+  {
+    id:'zenith', name:'ZENITH', cost:1000,
+    desc:'Elite fighter with rapid fire.',
     stats:{ hp:200, speedMul:1.15, cooldownMul:0.55, bulletMul:1.15 },
     colors: { primary:'#ffaa00', secondary:'#cc7700', core:'#ffdd44', thruster:'#ffcc22' }
   },
   {
     id:'aurora', name:'AURORA', cost:2000,
+    desc:'Advanced craft with powerful guns.',
     stats:{ hp:240, speedMul:1.22, cooldownMul:0.45, bulletMul:1.20 },
     colors: { primary:'#00ffaa', secondary:'#00cc77', core:'#55ffcc', thruster:'#22ffaa' }
   },
   {
     id:'eclipse', name:'ECLIPSE', cost:3500,
+    desc:'Top tier ship for seasoned pilots.',
     stats:{ hp:280, speedMul:1.30, cooldownMul:0.35, bulletMul:1.25 },
     colors: { primary:'#ff00aa', secondary:'#cc0088', core:'#ff55cc', thruster:'#ff0099' }
   },
+];
+
+const BOSSES = [
+  { type:'MINIBOSS', name:'Miniboss', desc:'Tough mid-wave foe.' },
+  { type:'BOSS3', name:'Sector 3 Boss', desc:'Rotating guardian.' },
+  { type:'BOSS6', name:'Sector 6 Boss', desc:'Shielded warship.' },
+  { type:'BOSS9', name:'Final Boss', desc:'The ultimate challenge.' },
 ];
