@@ -968,52 +968,7 @@ function drawEnemy(enemy){
   ctx.fill();
   ctx.stroke();
 
-  // Extra boss visuals
-  if (enemy.type === 'BOSS3'){
-    ctx.save();
-    ctx.rotate(enemy.movePattern * 2);
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i=0;i<3;i++){
-      const ang = i*2*Math.PI/3;
-      const r = enemy.size*1.1;
-      const x = Math.cos(ang)*r;
-      const y = Math.sin(ang)*r;
-      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-  } else if (enemy.type === 'BOSS6'){
-    const pulse = 1 + Math.sin(enemy.movePattern*3)*0.2;
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0,0, enemy.size*1.3*pulse, 0, Math.PI*2);
-    ctx.stroke();
-  } else if (enemy.type === 'BOSS9'){
-    ctx.save();
-    ctx.rotate(enemy.movePattern);
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i=0;i<5;i++){
-      const ang = i*2*Math.PI/5;
-      const outerR = enemy.size*1.5;
-      const innerR = enemy.size*0.7;
-      const x1 = Math.cos(ang)*outerR;
-      const y1 = Math.sin(ang)*outerR;
-      const ang2 = ang + Math.PI/5;
-      const x2 = Math.cos(ang2)*innerR;
-      const y2 = Math.sin(ang2)*innerR;
-      if (i===0) ctx.moveTo(x1,y1); else ctx.lineTo(x1,y1);
-      ctx.lineTo(x2,y2);
-    }
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-  }
+  // Extra boss visuals removed (triangle, circle, star)
 
   // Engine glow
   ctx.fillStyle = enemy.color;
@@ -1623,48 +1578,7 @@ function drawBossPreview(type,x,y){
   ctx.fill();
   ctx.stroke();
 
-  if (type==='BOSS3'){
-    ctx.save();
-    ctx.strokeStyle='#fff';
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    for (let i=0;i<3;i++){
-      const ang=i*2*Math.PI/3;
-      const r=size*1.1;
-      const x=Math.cos(ang)*r;
-      const y=Math.sin(ang)*r;
-      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-  } else if (type==='BOSS6'){
-    ctx.strokeStyle='#fff';
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    ctx.arc(0,0,size*1.3,0,Math.PI*2);
-    ctx.stroke();
-  } else if (type==='BOSS9'){
-    ctx.save();
-    ctx.strokeStyle='#fff';
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    for (let i=0;i<5;i++){
-      const ang=i*2*Math.PI/5;
-      const outerR=size*1.5;
-      const innerR=size*0.7;
-      const x1=Math.cos(ang)*outerR;
-      const y1=Math.sin(ang)*outerR;
-      const ang2=ang+Math.PI/5;
-      const x2=Math.cos(ang2)*innerR;
-      const y2=Math.sin(ang2)*innerR;
-      if (i===0) ctx.moveTo(x1,y1); else ctx.lineTo(x1,y1);
-      ctx.lineTo(x2,y2);
-    }
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-  }
+  // Extra boss visuals removed (triangle, circle, star)
 
   ctx.fillStyle = color;
   ctx.shadowBlur = 12;
