@@ -52,16 +52,16 @@ const ENEMY_TYPES = {
     bulletSpeed: 280, score: 200
   },
   BOSS3: {
-    hp: 600, speed: 50, size: 28, color: '#ff00ff', shootCooldown: 1.2,
-    bulletSpeed: 240, score: 500
+    hp: 900, speed: 60, size: 30, color: '#ff33ff', shootCooldown: 1.0,
+    bulletSpeed: 300, score: 700
   },
   BOSS6: {
-    hp: 900, speed: 45, size: 30, color: '#00ffaa', shootCooldown: 1.5,
-    bulletSpeed: 260, score: 800
+    hp: 1300, speed: 55, size: 32, color: '#00ffcc', shootCooldown: 1.2,
+    bulletSpeed: 320, score: 1100
   },
   BOSS9: {
-    hp: 1500, speed: 40, size: 34, color: '#ffff00', shootCooldown: 1.8,
-    bulletSpeed: 280, score: 1500
+    hp: 2000, speed: 50, size: 36, color: '#ffee00', shootCooldown: 1.5,
+    bulletSpeed: 340, score: 2000
   }
 };
 
