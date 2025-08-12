@@ -10,6 +10,7 @@ function saveProgress(){
     localStorage.setItem('space_diff', difficulty);
     localStorage.setItem('space_music', musicOn?'1':'0');
     localStorage.setItem('space_sfx', sfxOn?'1':'0');
+    localStorage.setItem('space_ship_lvls', JSON.stringify(shipLevels));
   }catch(e){}
 }
 function loadProgress(){
@@ -22,12 +23,14 @@ function loadProgress(){
     const d = localStorage.getItem('space_diff'); if (d && DIFFS[d]) difficulty = d;
     musicOn = localStorage.getItem('space_music') !== '0';
     sfxOn = localStorage.getItem('space_sfx') !== '0';
+    shipLevels = JSON.parse(localStorage.getItem('space_ship_lvls') || '{}');
+    for (const sh of SHIPS){ if (!shipLevels[sh.id]) shipLevels[sh.id] = 1; }
   }catch(e){}
 }
 function hasSaveSlot(){ return !!localStorage.getItem('space_save_slot'); }
 function saveGameState(){
   try{
-    const slot = { best, credits, owned:[...owned], selectedShipId, difficulty, player, bullets, asteroids, enemies, enemyBullets, powerups, score, currentLevel, currentWave, waveState, elapsed, lastShotAt, state };
+    const slot = { best, credits, owned:[...owned], selectedShipId, difficulty, player, bullets, asteroids, enemies, enemyBullets, powerups, score, currentLevel, currentWave, waveState, elapsed, lastShotAt, state, shipLevels };
     localStorage.setItem('space_save_slot', JSON.stringify(slot));
   }catch(e){}
 }
@@ -52,6 +55,8 @@ function loadGameState(){
     waveState = s.waveState || 'preparing';
     elapsed = +s.elapsed || 0;
     lastShotAt = +s.lastShotAt || -999;
+    shipLevels = s.shipLevels || shipLevels;
+    for (const sh of SHIPS){ if (!shipLevels[sh.id]) shipLevels[sh.id] = 1; }
     const st = s.state || 'playing';
     saveProgress();
     return st;

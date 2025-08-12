@@ -20,6 +20,8 @@ let spawnTimer = 0, lastEnemySpawn = 0;
 let credits = 0;
 let owned = new Set(['scout']);
 let selectedShipId = 'scout';
+let shipLevels = {scout:1};
+let currentWeapon = 1;
 // hangar
 let hangarOffset = 0, hangarTarget = 0, dragging = false, dragStartX = 0, dragStartOff = 0, dragAccum = 0;
 const CARD_W = 180, CARD_H = 200, CARD_GAP = 24;
@@ -28,6 +30,7 @@ let hangarReturn = 'mainmenu';
 const mouse = {x:0,y:0};
 let clickOnce = false;
 let touchActive = false;
+let lastTouchTap = 0;
 // audio & settings
 let audioCtx = null;
 let difficulty = 'medium';
@@ -55,6 +58,9 @@ function init(){
       mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
       mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
       if (state==='playing'){
+        const now = performance.now();
+        if (now - lastTouchTap < 300) switchWeapon();
+        lastTouchTap = now;
         touchActive = true;
         keys.add('Space');
         player.x = Math.max(PLAYER_R, Math.min(WIDTH-PLAYER_R, mouse.x));
@@ -163,6 +169,7 @@ function resetGame(){
   enemies.length = 0; enemyBullets.length = 0; powerups.length = 0;
   const hp = getShip().stats.hp;
   player = { x: WIDTH/2, y: HEIGHT - 80, r: PLAYER_R, maxHp: hp, hp: hp, iTime:0, shield:0, rainbowTime:0 };
+  currentWeapon = 1;
   currentLevel = 1; currentWave = 1; waveState = 'preparing';
   elapsed = 0; waveTimer = 0; waveTransitionTimer = 0; spawnTimer = 0; lastEnemySpawn = 0;
   waveEnemiesKilled = 0; waveEnemiesTotal = 0;
@@ -407,6 +414,7 @@ function onKeyDown(e){
     if (k==='ArrowRight') keys.add('ArrowRight');
     if (k==='ArrowUp') keys.add('ArrowUp');
     if (k==='ArrowDown') keys.add('ArrowDown');
+    if (k==='b'||k==='B') switchWeapon();
   }
 
   if (state==='hangar'){
@@ -426,6 +434,24 @@ function onKeyUp(e){
   if (k==='ArrowRight') keys.delete('ArrowRight');
   if (k==='ArrowUp') keys.delete('ArrowUp');
   if (k==='ArrowDown') keys.delete('ArrowDown');
+}
+
+function switchWeapon(){
+  const lvl = shipLevels[selectedShipId] || 1;
+  const max = lvl >= 3 ? 3 : (lvl >= 2 ? 2 : 1);
+  currentWeapon++;
+  if (currentWeapon > max) currentWeapon = 1;
+}
+
+function statsFor(ship, level){
+  const stats = {...ship.stats};
+  if (level >= 3){
+    stats.hp = Math.round(stats.hp * 1.2);
+    stats.speedMul *= 1.1;
+    stats.cooldownMul *= 0.8;
+    stats.bulletMul *= 1.3;
+  }
+  return stats;
 }
 
 /* ===========================
@@ -452,7 +478,7 @@ function update(dt){
   updateEnemies(dt);
   
   // Remove off-screen projectiles
-  bullets = bullets.filter(b => b.y + BULLET_R >= -10);
+  bullets = bullets.filter(b => b.y + (b.r || BULLET_R) >= -10);
   enemyBullets = enemyBullets.filter(b => b.y - 5 <= HEIGHT + 10);
   asteroids = asteroids.filter(a => a.y - a.r <= HEIGHT + 10);
   enemies = enemies.filter(e => e.y - e.size <= HEIGHT + 20);
@@ -545,7 +571,8 @@ function checkCollisions(){
     const a = asteroids[i];
     for (let j = bullets.length - 1; j >= 0; j--){
       const b = bullets[j];
-      if (circleHit(a.x,a.y,a.r, b.x,b.y,BULLET_R * getShip().stats.bulletMul)){
+      const br = b.r || BULLET_R * getShip().stats.bulletMul;
+      if (circleHit(a.x,a.y,a.r, b.x,b.y,br)){
         asteroids.splice(i,1); bullets.splice(j,1);
         waveEnemiesKilled++;
         credits += 1; score += 10; saveProgress();
@@ -562,9 +589,11 @@ function checkCollisions(){
     const e = enemies[i];
     for (let j = bullets.length - 1; j >= 0; j--){
       const b = bullets[j];
-      if (circleHit(e.x,e.y,e.size, b.x,b.y,BULLET_R * getShip().stats.bulletMul)){
+      const br = b.r || BULLET_R * getShip().stats.bulletMul;
+      if (circleHit(e.x,e.y,e.size, b.x,b.y,br)){
         bullets.splice(j,1);
-        e.hp -= 25; // Damage
+        const dmg = b.dmg || 25;
+        e.hp -= dmg; // Damage
         
         if (e.hp <= 0){
           enemies.splice(i,1);
@@ -716,9 +745,20 @@ function handleInput(dt){
 function shoot(){
   const cd = BASE_COOLDOWN * getShip().stats.cooldownMul * (player.rainbowTime > 0 ? 0.5 : 1);
   if (elapsed - lastShotAt < cd) return;
-  lastShotAt = elapsed; 
-  bullets.push({ x: player.x, y: player.y - PLAYER_R - 2 });
-  playLaserSound();
+  lastShotAt = elapsed;
+  const stats = getShip().stats;
+  if (currentWeapon === 1){
+    bullets.push({ x: player.x, y: player.y - PLAYER_R - 2 });
+    playLaserSound();
+  } else if (currentWeapon === 2){
+    bullets.push({ x: player.x - 10, y: player.y - PLAYER_R - 2 });
+    bullets.push({ x: player.x, y: player.y - PLAYER_R - 2 });
+    bullets.push({ x: player.x + 10, y: player.y - PLAYER_R - 2 });
+    playSfx(900,'square',0.12,0.2);
+  } else {
+    bullets.push({ x: player.x, y: player.y - PLAYER_R - 2, r: BULLET_R*2*stats.bulletMul, dmg:50 });
+    playSfx(200,'sawtooth',0.25,0.3);
+  }
 }
 
 /* ===========================
@@ -743,7 +783,10 @@ function render(){
     
     // bullets
     ctx.fillStyle = COLORS.bullet;
-    for (let b of bullets){ ctx.beginPath(); ctx.arc(b.x,b.y,BULLET_R*getShip().stats.bulletMul,0,Math.PI*2); ctx.fill(); }
+    for (let b of bullets){
+      const r = b.r || BULLET_R*getShip().stats.bulletMul;
+      ctx.beginPath(); ctx.arc(b.x,b.y,r,0,Math.PI*2); ctx.fill();
+    }
     
     // enemy bullets
     ctx.save(); ctx.shadowColor = '#f44'; ctx.shadowBlur = 6;
@@ -926,7 +969,7 @@ function drawPlayer(){
   const ship = getShip();
   const colors = ship.colors;
   const {x, y} = player;
-  
+
   ctx.save();
   ctx.translate(x, y);
 
@@ -939,6 +982,8 @@ function drawPlayer(){
       case 'eclipse': drawEclipseShip(colors); break;
       default: drawScoutShip(colors); break;
     }
+
+  drawShipExtras(ship.level, colors);
   
   if (player.iTime > 0){ 
     ctx.globalAlpha = 0.6 + 0.4*Math.sin(elapsed*20); 
@@ -975,6 +1020,23 @@ function drawPlayer(){
   }
 
   ctx.restore();
+}
+
+function drawShipExtras(level, colors){
+  if (level >= 2){
+    ctx.fillStyle = colors.secondary;
+    ctx.fillRect(-PLAYER_R*0.5, PLAYER_R*0.2, PLAYER_R, 2);
+  }
+  if (level >= 3){
+    ctx.strokeStyle = colors.core;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = colors.core;
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(0,0,PLAYER_R+6,0,Math.PI*2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
 }
 
 function drawScoutShip(colors){
@@ -1245,7 +1307,8 @@ function drawHUD(){
     
     hudChip(WIDTH-10, 10, `Best: ${best}`, true);
     hudChip(WIDTH-10, 40, `Credits: ${credits}`, true);
-    
+    hudChip(WIDTH-10, 70, `Weapon: ${currentWeapon}`, true);
+
     // HP bar
     const pct = Math.max(0, Math.min(1, player.hp / player.maxHp));
     const HPX=10, HPY=HEIGHT-30, HPW=220, HPH=12;
@@ -1329,6 +1392,17 @@ function drawHangar(){
   const canBuy = !owned.has(focus.id) && credits >= focus.cost;
   drawButton(WIDTH/2 - 190, HEIGHT-100, 180, 44, owned.has(focus.id)?'Owned':`Buy (${focus.cost})`, ()=>{ tryBuy(focus); }, !canBuy && !owned.has(focus.id));
   drawButton(WIDTH/2 + 10, HEIGHT-100, 180, 44, 'Select', ()=>{ if (owned.has(focus.id)){ selectedShipId = focus.id; saveProgress(); } }, !owned.has(focus.id));
+  if (owned.has(focus.id)){
+    const lvl = shipLevels[focus.id] || 1;
+    const next = lvl + 1;
+    if (next <= MAX_SHIP_LEVEL){
+      const cost = UPGRADE_COSTS[next] || 0;
+      const canUp = credits >= cost;
+      drawButton(WIDTH/2 - 190, HEIGHT-150, 180, 44, `Upgrade (${cost})`, ()=>{ upgradeShip(focus); }, !canUp);
+    } else {
+      drawButton(WIDTH/2 - 190, HEIGHT-150, 180, 44, 'Max Level', ()=>{}, true);
+    }
+  }
   drawButton(WIDTH/2 - 100, HEIGHT-48, 200, 40, 'Start Game', ()=>{ if (owned.has(focus.id)){ selectedShipId = focus.id; startGame(); } });
 }
 function drawShipCard(x,y,ship,focused){
@@ -1338,11 +1412,12 @@ function drawShipCard(x,y,ship,focused){
   ctx.strokeStyle = focused ? '#aff' : 'rgba(155,255,255,0.25)';
   ctx.lineWidth = focused ? 2 : 1; roundRect(0,0,CARD_W,CARD_H,14); ctx.fill(); ctx.stroke();
 
-  ctx.save(); 
+  ctx.save();
   ctx.translate(CARD_W/2, 95);
   ctx.scale(0.8, 0.8);
-  
+
   const colors = ship.colors;
+  const level = shipLevels[ship.id] || 1;
   switch(ship.id){
     case 'scout': drawScoutShip(colors); break;
     case 'raptor': drawRaptorShip(colors); break;
@@ -1352,17 +1427,21 @@ function drawShipCard(x,y,ship,focused){
       case 'eclipse': drawEclipseShip(colors); break;
       default: drawScoutShip(colors); break;
     }
-  
+  drawShipExtras(level, colors);
+
   ctx.restore();
 
   ctx.fillStyle = COLORS.hud; ctx.textAlign = 'center';
   ctx.font = 'bold 18px system-ui, sans-serif'; ctx.fillText(ship.name, CARD_W/2, 24);
   ctx.font = '14px system-ui, sans-serif'; ctx.fillText(owned.has(ship.id)?'OWNED':`COST: ${ship.cost}`, CARD_W/2, CARD_H - 26);
   if (selectedShipId === ship.id) { ctx.fillStyle = '#9ff'; ctx.fillText('SELECTED', CARD_W/2, CARD_H - 46); }
+  ctx.fillStyle = COLORS.hud;
+  ctx.font = '12px system-ui, sans-serif';
+  ctx.fillText(`Level ${level}`, CARD_W/2, 120);
 
   ctx.font = '12px system-ui, sans-serif';
   ctx.fillStyle = 'rgba(180,220,240,0.8)';
-  const stats = ship.stats;
+  const stats = statsFor(ship, level);
   ctx.fillText(`HP: ${stats.hp} | Speed: ${(stats.speedMul*100).toFixed(0)}%`, CARD_W/2, 140);
   ctx.fillText(`Fire Rate: ${(100/stats.cooldownMul).toFixed(0)}%`, CARD_W/2, 155);
 
@@ -1483,15 +1562,35 @@ function drawGameOver(){
   drawButton(WIDTH/2 - 110, HEIGHT/2 + 50, 220, 40, 'Main Menu', ()=>{ toMain(); });
 }
 
-function getShip(){ return SHIPS.find(s=>s.id===selectedShipId) || SHIPS[0]; }
+function getShip(){
+  const base = SHIPS.find(s=>s.id===selectedShipId) || SHIPS[0];
+  const level = shipLevels[selectedShipId] || 1;
+  const stats = statsFor(base, level);
+  return { ...base, level, stats };
+}
 function tryBuy(ship){
   if (owned.has(ship.id)) return;
   if (credits >= ship.cost){
     credits -= ship.cost;
     owned.add(ship.id);
     selectedShipId = ship.id;
-    const hp = ship.stats.hp;
+    shipLevels[ship.id] = shipLevels[ship.id] || 1;
+    const hp = statsFor(ship, shipLevels[ship.id]).hp;
     if (player){ player.maxHp = hp; player.hp = hp; player.shield = 0; }
+    saveProgress();
+  }
+}
+function upgradeShip(ship){
+  const lvl = shipLevels[ship.id] || 1;
+  if (lvl >= MAX_SHIP_LEVEL) return;
+  const cost = UPGRADE_COSTS[lvl+1] || 0;
+  if (credits >= cost){
+    credits -= cost;
+    shipLevels[ship.id] = lvl+1;
+    if (ship.id === selectedShipId){
+      const hp = statsFor(ship, shipLevels[ship.id]).hp;
+      if (player){ player.maxHp = hp; player.hp = hp; }
+    }
     saveProgress();
   }
 }

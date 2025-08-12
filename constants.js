@@ -27,6 +27,10 @@ const WAVE_REWARDS = [50, 70, 100];
 const MAX_LEVELS = 5;
 const WAVES_PER_LEVEL = 3;
 
+// Ship upgrade system
+const MAX_SHIP_LEVEL = 3;
+const UPGRADE_COSTS = [0, 200, 500]; // index by target level
+
 /* ===========================
    Enemy Types
    =========================== */
