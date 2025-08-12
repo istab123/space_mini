@@ -903,10 +903,36 @@ function render(){
 function drawEnemy(enemy){
   ctx.save();
   ctx.translate(enemy.x, enemy.y);
-  
-  // Health bar for bosses
+
+  // Add badass aura for bosses
   const isBoss = enemy.type === 'MINIBOSS' || enemy.type.startsWith('BOSS');
   if (isBoss){
+    // Pulsating glow
+    const pulse = 1 + Math.sin(elapsed * 4) * 0.1;
+    const auraR = enemy.size * 1.7 * pulse;
+    const g = ctx.createRadialGradient(0, 0, enemy.size, 0, 0, auraR);
+    g.addColorStop(0, enemy.color + '22');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(0, 0, auraR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Rotating spikes
+    ctx.save();
+    ctx.rotate(elapsed);
+    ctx.strokeStyle = enemy.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++){
+      const ang = i * Math.PI / 4;
+      ctx.moveTo(Math.cos(ang) * enemy.size * 1.2, Math.sin(ang) * enemy.size * 1.2);
+      ctx.lineTo(Math.cos(ang) * enemy.size * 1.6, Math.sin(ang) * enemy.size * 1.6);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // Health bar for bosses
     const barW = 60, barH = 6;
     const pct = enemy.hp / enemy.maxHp;
     ctx.fillStyle = 'rgba(60,0,0,0.8)';
@@ -914,7 +940,7 @@ function drawEnemy(enemy){
     ctx.fillStyle = '#f44';
     ctx.fillRect(-barW/2, -enemy.size - 15, barW * pct, barH);
   }
-  
+
   // Ship body
   ctx.fillStyle = enemy.color + '60';
   ctx.strokeStyle = enemy.color;
@@ -1551,6 +1577,33 @@ function drawBossPreview(type,x,y){
   const size = info.size, color = info.color;
   ctx.save();
   ctx.translate(x,y);
+
+  const t = Date.now()/1000;
+
+  // Aura and spikes for preview
+  const pulse = 1 + Math.sin(t * 4) * 0.1;
+  const auraR = size * 1.7 * pulse;
+  const g = ctx.createRadialGradient(0,0,size,0,0,auraR);
+  g.addColorStop(0, color + '22');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(0,0,auraR,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.rotate(t);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i=0;i<8;i++){
+    const ang = i*Math.PI/4;
+    ctx.moveTo(Math.cos(ang)*size*1.2, Math.sin(ang)*size*1.2);
+    ctx.lineTo(Math.cos(ang)*size*1.6, Math.sin(ang)*size*1.6);
+  }
+  ctx.stroke();
+  ctx.restore();
+
   ctx.rotate(Date.now()/1500);
   const gradient = ctx.createRadialGradient(0,0,0,0,0,size);
   gradient.addColorStop(0,color);
