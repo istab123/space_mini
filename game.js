@@ -1509,7 +1509,7 @@ function drawInfoGeneral(){
     'Each level has three waves: asteroids, fighters and a boss.',
     'Defeat bosses to advance and unlock tougher challenges.'
   ];
-  let y=160;
+  let y=180;
   for (let line of lines){ ctx.fillText(line,40,y); y+=24; }
 }
 
@@ -1518,7 +1518,7 @@ function drawInfoShips(){
   let y=160; ctx.fillText('Ships',40,y); y+=20;
   ctx.font='14px system-ui, sans-serif'; ctx.textBaseline='middle';
   for (let ship of SHIPS){
-    y+=34;
+    y+=44;
     ctx.save(); ctx.translate(60,y-10); ctx.scale(0.7,0.7);
     const colors=ship.colors;
     switch(ship.id){
@@ -1540,7 +1540,7 @@ function drawInfoBosses(){
   let y=160; ctx.fillText('Bosses',40,y); y+=20;
   ctx.font='14px system-ui, sans-serif'; ctx.textBaseline='middle';
   for (let boss of BOSSES){
-    y+=34;
+    y+=44;
     drawBossPreview(boss.type,60,y-10);
     ctx.fillText(`${boss.name}: ${boss.desc}`,100,y);
   }
