@@ -18,6 +18,14 @@
   },
   "build": {
     "appId": "space.mini",
-    "productName": "Space Mini"
+    "productName": "Space Mini",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
   }
 }
