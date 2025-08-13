@@ -6,6 +6,14 @@ Space Mini is a lightweight browser-based top‑down shooter written in vanilla 
 1. Clone or download this repository.
 2. Open `index.html` in any modern web browser. No build or server setup is required.
 
+### Mobile / PWA
+
+The project includes a basic Progressive Web App setup. When visiting `index.html` on a mobile device, use the "Install App" button or your browser's prompt to add Space Mini to your home screen.
+
+To distribute a native Android build, create an APK using a packaging tool and place it at `mobile/space_mini.apk`. The page will expose a download link automatically when the file is present.
+
+To provide a custom app icon, update `manifest.json` with your own base64-encoded image and adjust the service worker's cache list if needed. No binary icon files are tracked in this repository.
+
 ## Controls
 | Action                     | Key(s)        |
 |----------------------------|---------------|
