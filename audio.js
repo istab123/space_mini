@@ -42,9 +42,9 @@ function playLaserSound(){
 
 async function startMusic(){
   if (!musicOn) return;
-  initAudio(); 
+  initAudio();
   try{ await audioCtx.resume(); }catch{}
-  if (!audioCtx || music.started) return;
+  if (!audioCtx || music.started || audioCtx.state !== 'running') return;
   
   music.started = true;
   music.time = audioCtx.currentTime;
