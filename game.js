@@ -904,6 +904,7 @@ function render(){
     drawPlayer();
   }
 
+  ctx.setTransform(1,0,0,1,0,0);
   drawHUD();
   if (state==='mainmenu') drawMainMenu();
   if (state==='info') drawInfo();
@@ -1463,7 +1464,7 @@ function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w
 
 function drawMainMenu(){
   ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
-  const t = uiTime; const cx=WIDTH/2, cy=120, r=110, n=14;
+  const t = uiTime; const cx=WIDTH/2, cy=100, r=110, n=14;
   for (let i=0;i<n;i++){
     const a = t*0.8 + i*(Math.PI*2/n);
     const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r*0.45;
@@ -1471,13 +1472,23 @@ function drawMainMenu(){
     ctx.fillStyle = `rgba(155,255,255,${alpha})`; ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2); ctx.fill();
   }
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=COLORS.hud;
-  ctx.font='bold 52px system-ui, sans-serif'; ctx.fillText('Space Mini', WIDTH/2, 120);
+  ctx.font='bold 52px system-ui, sans-serif'; ctx.fillText('Space Mini', WIDTH/2, 100);
 
-  drawButton(WIDTH/2-140, 220, 280, 44, 'New Game', ()=>{ startGame(); });
-  drawButton(WIDTH/2-140, 294, 280, 44, hasSaveSlot()?'Load Game':'Load Game (empty)', ()=>{ const st=loadGameState(); if(st){ transitionTo(st); if(state==='levelcomplete') levelCompleteTime=3; } }, !hasSaveSlot());
-  drawButton(WIDTH/2-140, 368, 280, 44, 'Settings', ()=>{ toSettings(); });
-  drawButton(WIDTH/2-140, 442, 280, 44, 'Hangar', ()=>{ toHangar(); });
-  drawButton(WIDTH/2-140, 516, 280, 44, 'Info', ()=>{ toInfo(); });
+  const startY = 200;
+  const gap = 80;
+  drawButton(WIDTH/2-140, startY, 280, 44, 'New Game', ()=>{ startGame(); });
+  drawButton(
+    WIDTH/2-140,
+    startY + gap,
+    280,
+    44,
+    hasSaveSlot() ? 'Load Game' : 'Load Game (empty)',
+    ()=>{ const st=loadGameState(); if(st){ transitionTo(st); if(state==='levelcomplete') levelCompleteTime=3; } },
+    !hasSaveSlot()
+  );
+  drawButton(WIDTH/2-140, startY + gap*2, 280, 44, 'Settings', ()=>{ toSettings(); });
+  drawButton(WIDTH/2-140, startY + gap*3, 280, 44, 'Hangar', ()=>{ toHangar(); });
+  drawButton(WIDTH/2-140, startY + gap*4, 280, 44, 'Info', ()=>{ toInfo(); });
 
   ctx.fillStyle='rgba(180,220,240,0.7)'; ctx.font='14px system-ui, sans-serif';
   ctx.fillText('5 Levels • 3 Waves Each • Epic Boss Battles', WIDTH/2, HEIGHT-40);
@@ -1801,7 +1812,7 @@ function drawLevelComplete(){
 function drawPause(){
   ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
   ctx.fillStyle=COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.font='bold 44px system-ui, sans-serif'; ctx.fillText('Paused', WIDTH/2, HEIGHT/2 - 100);
+  ctx.font='bold 44px system-ui, sans-serif'; ctx.fillText('Paused', WIDTH/2, HEIGHT/2 - 140);
   drawButton(WIDTH/2-110, HEIGHT/2 - 80, 220, 40, 'Resume', ()=>{ resumeGame(); });
   drawButton(WIDTH/2-110, HEIGHT/2, 220, 40, 'Save Game', ()=>{ saveGameState(); });
   drawButton(WIDTH/2-110, HEIGHT/2 + 80, 220, 40, 'Hangar', ()=>{ toHangar('paused'); });
