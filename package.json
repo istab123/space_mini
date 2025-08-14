@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dev:web": "vite",
-    "build:web": "vite build",
+    "build:web": "vite build && node copy-static.js",
     "preview:web": "vite preview",
     "build": "electron-builder",
     "build:android": "powershell -ExecutionPolicy RemoteSigned ./build-and-install.ps1",
