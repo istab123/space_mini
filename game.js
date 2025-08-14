@@ -56,10 +56,21 @@ function init(){
   canvas.addEventListener('pointerdown', async (e)=>{
     clicks.t = performance.now();
     if (!clickOnce){ clickOnce = true; initAudio(); try{ await audioCtx.resume(); }catch{} refreshMusic(); }
+
+    const r = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
+    mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
+
+    // check UI buttons first
+    for (let b of btns){
+      if (!b.disabled && mouse.x>=b.x && mouse.x<=b.x+b.w && mouse.y>=b.y && mouse.y<=b.y+b.h){
+        b.fn();
+        clicks.t = 0;
+        return;
+      }
+    }
+
     if (e.pointerType !== 'mouse'){
-      const r = canvas.getBoundingClientRect();
-      mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
-      mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
       if (state==='playing'){
         const now = performance.now();
         if (now - lastTouchTap < 300) switchWeapon();
@@ -1463,10 +1474,10 @@ function drawMainMenu(){
   ctx.font='bold 52px system-ui, sans-serif'; ctx.fillText('Space Mini', WIDTH/2, 120);
 
   drawButton(WIDTH/2-140, 220, 280, 44, 'New Game', ()=>{ startGame(); });
-  drawButton(WIDTH/2-140, 276, 280, 44, hasSaveSlot()?'Load Game':'Load Game (empty)', ()=>{ const st=loadGameState(); if(st){ transitionTo(st); if(state==='levelcomplete') levelCompleteTime=3; } }, !hasSaveSlot());
-  drawButton(WIDTH/2-140, 332, 280, 44, 'Settings', ()=>{ toSettings(); });
-  drawButton(WIDTH/2-140, 388, 280, 44, 'Hangar', ()=>{ toHangar(); });
-  drawButton(WIDTH/2-140, 444, 280, 44, 'Info', ()=>{ toInfo(); });
+  drawButton(WIDTH/2-140, 294, 280, 44, hasSaveSlot()?'Load Game':'Load Game (empty)', ()=>{ const st=loadGameState(); if(st){ transitionTo(st); if(state==='levelcomplete') levelCompleteTime=3; } }, !hasSaveSlot());
+  drawButton(WIDTH/2-140, 368, 280, 44, 'Settings', ()=>{ toSettings(); });
+  drawButton(WIDTH/2-140, 442, 280, 44, 'Hangar', ()=>{ toHangar(); });
+  drawButton(WIDTH/2-140, 516, 280, 44, 'Info', ()=>{ toInfo(); });
 
   ctx.fillStyle='rgba(180,220,240,0.7)'; ctx.font='14px system-ui, sans-serif';
   ctx.fillText('5 Levels • 3 Waves Each • Epic Boss Battles', WIDTH/2, HEIGHT-40);
@@ -1725,8 +1736,6 @@ function drawButton(x,y,w,h,label,fn,disabled=false,bright=false){
   ctx.strokeStyle = hover && !disabled ? '#aff' : 'rgba(155,255,255,0.35)'; ctx.lineWidth = hover?2:1.5; roundRect(x,y,w,h,12*uiScale); ctx.fill(); ctx.stroke();
   ctx.fillStyle = COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font=`bold ${18*uiScale}px system-ui, sans-serif`; ctx.fillText(label, x+w/2, y+h/2);
   ctx.restore();
-
-  if (!disabled && hover && wasJustClicked()) fn();
 }
 function drawToggleRow(centerX, y, items, active, onChoose){
   const W=120*uiScale,H=34*uiScale,G=14*uiScale; const total=items.length*W+(items.length-1)*G; let x=centerX-total/2;
@@ -1781,11 +1790,11 @@ function drawLevelComplete(){
   }
 
   if (showMenu){
-    drawButton(WIDTH/2-110, HEIGHT/2 - 20, 220, 40, 'Main Menu', ()=>{ toMain(); });
-    drawButton(WIDTH/2-110, HEIGHT/2 + 30, 220, 40, 'Hangar', ()=>{ toHangar('levelcomplete'); });
-    drawButton(WIDTH/2-110, HEIGHT/2 + 80, 220, 40, 'Save Game', ()=>{ saveGameState(); });
+    drawButton(WIDTH/2-110, HEIGHT/2 - 60, 220, 40, 'Main Menu', ()=>{ toMain(); });
+    drawButton(WIDTH/2-110, HEIGHT/2 + 20, 220, 40, 'Hangar', ()=>{ toHangar('levelcomplete'); });
+    drawButton(WIDTH/2-110, HEIGHT/2 + 100, 220, 40, 'Save Game', ()=>{ saveGameState(); });
     const disableNext = currentLevel >= MAX_LEVELS;
-    drawButton(WIDTH/2-110, HEIGHT/2 + 130, 220, 40, 'Next Level', ()=>{ proceedToNextLevel(); }, disableNext);
+    drawButton(WIDTH/2-110, HEIGHT/2 + 180, 220, 40, 'Next Level', ()=>{ proceedToNextLevel(); }, disableNext);
   }
 }
 
@@ -1793,10 +1802,10 @@ function drawPause(){
   ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
   ctx.fillStyle=COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.font='bold 44px system-ui, sans-serif'; ctx.fillText('Paused', WIDTH/2, HEIGHT/2 - 100);
-  drawButton(WIDTH/2-110, HEIGHT/2 - 40, 220, 40, 'Resume', ()=>{ resumeGame(); });
-  drawButton(WIDTH/2-110, HEIGHT/2 + 10, 220, 40, 'Save Game', ()=>{ saveGameState(); });
-  drawButton(WIDTH/2-110, HEIGHT/2 + 60, 220, 40, 'Hangar', ()=>{ toHangar('paused'); });
-  drawButton(WIDTH/2-110, HEIGHT/2 + 110, 220, 40, 'Main Menu', ()=>{ toMain(); });
+  drawButton(WIDTH/2-110, HEIGHT/2 - 80, 220, 40, 'Resume', ()=>{ resumeGame(); });
+  drawButton(WIDTH/2-110, HEIGHT/2, 220, 40, 'Save Game', ()=>{ saveGameState(); });
+  drawButton(WIDTH/2-110, HEIGHT/2 + 80, 220, 40, 'Hangar', ()=>{ toHangar('paused'); });
+  drawButton(WIDTH/2-110, HEIGHT/2 + 160, 220, 40, 'Main Menu', ()=>{ toMain(); });
 }
 function drawGameOver(){
   ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
