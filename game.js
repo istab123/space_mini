@@ -41,6 +41,7 @@ let shakeT=0, shakeA=0;
 // ui clock
 let uiTime = 0;
 let infoTab = 'general';
+let uiScale = window.innerWidth < 600 ? 1.5 : 1;
 
 /* ===========================
    Init
@@ -53,6 +54,7 @@ function init(){
   loadProgress();
 
   canvas.addEventListener('pointerdown', async (e)=>{
+    clicks.t = performance.now();
     if (!clickOnce){ clickOnce = true; initAudio(); try{ await audioCtx.resume(); }catch{} refreshMusic(); }
     if (e.pointerType !== 'mouse'){
       const r = canvas.getBoundingClientRect();
@@ -98,8 +100,6 @@ function init(){
   canvas.addEventListener('pointerup', endPointer);
   canvas.addEventListener('pointercancel', endPointer);
   canvas.addEventListener('pointerout', endPointer);
-
-  canvas.addEventListener('click', ()=>{ clicks.t = performance.now(); });
 
   canvas.addEventListener('mousedown', ()=>{
     if (state==='hangar'){ dragging = true; dragStartX = mouse.x; dragStartOff = hangarOffset; dragAccum = 0; }
@@ -1705,27 +1705,32 @@ function wasJustClicked(){
 
 const btns = [];
 function drawButton(x,y,w,h,label,fn,disabled=false,bright=false){
+  let centerX = x + w/2, centerY = y + h/2;
+  w *= uiScale; h *= uiScale;
+  x = centerX - w/2; y = centerY - h/2;
+  x = Math.max(10, Math.min(WIDTH - w - 10, x));
+  y = Math.max(10, Math.min(HEIGHT - h - 10, y));
   btns.push({x,y,w,h,fn,disabled});
   const hover = mouse.x>=x && mouse.x<=x+w && mouse.y>=y && mouse.y<=y+h;
   ctx.save(); ctx.globalAlpha = disabled?0.6:1;
   const base = bright ? 'rgba(0,60,90,0.7)' : 'rgba(0,40,60,0.7)';
   const hoverCol = bright ? 'rgba(0,80,120,0.8)' : 'rgba(0,60,90,0.8)';
   ctx.fillStyle = hover && !disabled ? hoverCol : base;
-  ctx.strokeStyle = hover && !disabled ? '#aff' : 'rgba(155,255,255,0.35)'; ctx.lineWidth = hover?2:1.5; roundRect(x,y,w,h,12); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='bold 18px system-ui, sans-serif'; ctx.fillText(label, x+w/2, y+h/2);
+  ctx.strokeStyle = hover && !disabled ? '#aff' : 'rgba(155,255,255,0.35)'; ctx.lineWidth = hover?2:1.5; roundRect(x,y,w,h,12*uiScale); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font=`bold ${18*uiScale}px system-ui, sans-serif`; ctx.fillText(label, x+w/2, y+h/2);
   ctx.restore();
 
   if (!disabled && hover && wasJustClicked()) fn();
 }
 function drawToggleRow(centerX, y, items, active, onChoose){
-  const W=120,H=34,G=14; const total=items.length*W+(items.length-1)*G; let x=centerX-total/2;
+  const W=120*uiScale,H=34*uiScale,G=14*uiScale; const total=items.length*W+(items.length-1)*G; let x=centerX-total/2;
   for (let it of items){
     const on = active ? it.id===active : false;
     const hover = mouse.x>=x && mouse.x<=x+W && mouse.y>=y && mouse.y<=y+H;
     ctx.fillStyle = on ? 'rgba(0,80,120,0.9)' : (hover ? 'rgba(0,60,90,0.8)' : 'rgba(0,40,60,0.7)');
     ctx.strokeStyle = on || hover ? '#aff' : 'rgba(155,255,255,0.35)';
-    roundRect(x,y,W,H,10); ctx.fill(); ctx.stroke();
-    ctx.fillStyle=COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='16px system-ui, sans-serif'; ctx.fillText(it.label, x+W/2, y+H/2);
+    roundRect(x,y,W,H,10*uiScale); ctx.fill(); ctx.stroke();
+    ctx.fillStyle=COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font=`${16*uiScale}px system-ui, sans-serif`; ctx.fillText(it.label, x+W/2, y+H/2);
     if (hover && wasJustClicked()) onChoose(it.id);
     x += W+G;
   }
