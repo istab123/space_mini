@@ -163,6 +163,8 @@ function toMain(){
 function validateSelected(){ if (!SHIPS.some(s=>s.id===selectedShipId)) selectedShipId='scout'; }
 function toHangar(returnTo='mainmenu'){ validateSelected(); hangarReturn = returnTo; transitionTo('hangar'); }
 function backFromHangar(){
+  dragging = false;
+  dragAccum = 0;
   if (hangarReturn === 'mainmenu') toMain();
   else transitionTo(hangarReturn);
 }
@@ -186,7 +188,11 @@ function startGame(){
   startWave();
   transitionTo('playing');
 }
-function pauseGame(){ transitionTo('paused'); }
+function pauseGame(){
+  touchActive = false;
+  keys.clear();
+  transitionTo('paused');
+}
 function resumeGame(){ transitionTo('playing'); }
 function resetProgress(){
   best=0; credits=0; owned=new Set(['scout']); selectedShipId='scout';
