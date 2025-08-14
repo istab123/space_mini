@@ -5,7 +5,11 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "dev:web": "vite",
+    "build:web": "vite build",
+    "preview:web": "vite preview",
     "build": "electron-builder",
+    "build:android": "powershell -ExecutionPolicy RemoteSigned ./build-and-install.ps1",
     "test": "echo \"No tests\" && exit 0"
   },
   "keywords": [],
@@ -13,11 +17,20 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/cli": "^7.4.2",
+    "@capacitor/core": "^7.4.2",
+    "@vitejs/plugin-react": "^5.0.0",
     "electron": "^37.2.6",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "vite": "^5.4.19"
   },
   "build": {
     "appId": "space.mini",
     "productName": "Space Mini"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   }
 }
