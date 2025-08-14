@@ -1428,6 +1428,9 @@ function drawHUD(){
     ctx.fillStyle='rgba(0,20,30,0.7)'; roundRect(HPX,HPY,HPW,HPH,6); ctx.fill();
     ctx.fillStyle= pct<0.3 ? '#ff7a7a' : '#7af'; roundRect(HPX,HPY,HPW*pct,HPH,6); ctx.fill();
     ctx.fillStyle=COLORS.hud; ctx.fillText(`HP ${Math.ceil(player.hp)}/${player.maxHp}`, HPX, HPY-18);
+
+    // Pause button for touch devices
+    drawButton(WIDTH-90, HEIGHT-50, 80, 40, 'Pause', ()=>{ pauseGame(); }, false, true);
   } else if (state === 'hangar'){
     ctx.textAlign='right'; hudChip(WIDTH-10,10,`Credits: ${credits}`, true);
   }
