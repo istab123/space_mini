@@ -9,6 +9,19 @@ let keys = new Set();
 let lastShotAt = -999, elapsed = 0;
 let score = 0, best = 0, timeAccumulator = 0, lastFrame = 0;
 
+// image cache for sprites
+const images = {};
+function getImage(path){
+  if (!images[path]){
+    const img = new Image();
+    img.src = path;
+    images[path] = img;
+  }
+  return images[path];
+}
+
+const MINIBOSS_IMG = 'assets/miniboss-ship.svg';
+
 // Wave System
 let currentLevel = 1, currentWave = 1;
 let waveEnemiesKilled = 0, waveEnemiesTotal = 0;
@@ -918,12 +931,55 @@ function render(){
   drawScanlines();
 }
 
+function drawMiniboss(ctx,x,y,t){
+  const ship = getImage(MINIBOSS_IMG);
+  const scale = 1.6;
+  const w = 48 * scale;
+  const h = 48 * scale;
+  const bob = Math.sin(t * 2.2) * 2;
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.shadowColor = '#ff3b3b';
+  ctx.shadowBlur = 24;
+  ctx.globalAlpha = 0.98;
+  if (ship.complete) ctx.drawImage(ship, -w/2, -h/2, w, h);
+
+  // aura ticks
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 0.9;
+  ctx.strokeStyle = '#ff3b3b';
+  ctx.lineWidth = 2;
+  const r = Math.min(w, h) * 0.65;
+  for (let i = 0; i < 7; i++){
+    const a = (i / 7) * Math.PI * 2 + (t * 0.6);
+    const x1 = Math.cos(a) * (r + 6);
+    const y1 = Math.sin(a) * (r + 6);
+    const x2 = Math.cos(a) * (r + 16);
+    const y2 = Math.sin(a) * (r + 16);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawEnemy(enemy){
+  if (enemy.type === 'MINIBOSS'){
+    drawMiniboss(ctx, enemy.x, enemy.y, elapsed);
+    const barW = 60, barH = 6;
+    const pct = enemy.hp / enemy.maxHp;
+    ctx.fillStyle = 'rgba(60,0,0,0.8)';
+    ctx.fillRect(enemy.x - barW/2, enemy.y - enemy.size - 15, barW, barH);
+    ctx.fillStyle = '#f44';
+    ctx.fillRect(enemy.x - barW/2, enemy.y - enemy.size - 15, barW * pct, barH);
+    return;
+  }
   ctx.save();
   ctx.translate(enemy.x, enemy.y);
 
   // Add badass aura for bosses
-  const isBoss = enemy.type === 'MINIBOSS' || enemy.type.startsWith('BOSS');
+  const isBoss = enemy.type.startsWith('BOSS');
   if (isBoss){
     // Pulsating glow
     const pulse = 1 + Math.sin(elapsed * 4) * 0.1;
@@ -1596,6 +1652,11 @@ function drawInfoPowerups(){
 }
 
 function drawBossPreview(type,x,y){
+  if (type === 'MINIBOSS'){
+    const t = Date.now()/1000;
+    drawMiniboss(ctx, x, y, t);
+    return;
+  }
   const info = ENEMY_TYPES[type];
   const size = info.size, color = info.color;
   ctx.save();
