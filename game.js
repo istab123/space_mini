@@ -967,12 +967,14 @@ function drawEnemy(enemy){
   ctx.shadowBlur = 10;
   
   if (isBoss){
-    // Large diamond shape
+    // Spaceship body with wings
     ctx.beginPath();
     ctx.moveTo(0, -enemy.size);
-    ctx.lineTo(-enemy.size*0.8, 0);
-    ctx.lineTo(0, enemy.size);
-    ctx.lineTo(enemy.size*0.8, 0);
+    ctx.lineTo(-enemy.size*0.6, -enemy.size*0.2);
+    ctx.lineTo(-enemy.size*0.8, enemy.size*0.6);
+    ctx.lineTo(0, enemy.size*0.8);
+    ctx.lineTo(enemy.size*0.8, enemy.size*0.6);
+    ctx.lineTo(enemy.size*0.6, -enemy.size*0.2);
     ctx.closePath();
   } else {
     // Triangle pointing down
@@ -982,28 +984,32 @@ function drawEnemy(enemy){
     ctx.lineTo(enemy.size*0.7, -enemy.size);
     ctx.closePath();
   }
-  
+
   ctx.fill();
   ctx.stroke();
 
-  // Extra boss visuals removed (triangle, circle, star)
+  if (isBoss){
+    // Cockpit
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(0,0,enemy.size*0.3,0,Math.PI*2);
+    ctx.fill();
+  }
 
   // Engine glow
   ctx.fillStyle = enemy.color;
   ctx.shadowBlur = 8;
   if (isBoss){
     ctx.beginPath();
-    ctx.arc(-enemy.size*0.4, enemy.size*0.5, 3, 0, Math.PI*2);
-    ctx.fill();
+    ctx.arc(-enemy.size*0.4, enemy.size*0.55, 3, 0, Math.PI*2); ctx.fill();
     ctx.beginPath();
-    ctx.arc(enemy.size*0.4, enemy.size*0.5, 3, 0, Math.PI*2);
-    ctx.fill();
+    ctx.arc(enemy.size*0.4, enemy.size*0.55, 3, 0, Math.PI*2); ctx.fill();
   } else {
     ctx.beginPath();
     ctx.arc(0, -enemy.size*0.6, 2, 0, Math.PI*2);
     ctx.fill();
   }
-  
+
   ctx.restore();
 }
 
@@ -1503,12 +1509,14 @@ function drawInfo(){
   drawToggleRow(WIDTH/2, 120, [
     {id:'general', label:'General'},
     {id:'ships', label:'Ships'},
-    {id:'bosses', label:'Bosses'}
+    {id:'bosses', label:'Bosses'},
+    {id:'powerups', label:'Powerups'}
   ], infoTab, (id)=>{ infoTab = id; });
 
   if (infoTab==='general') drawInfoGeneral();
   else if (infoTab==='ships') drawInfoShips();
   else if (infoTab==='bosses') drawInfoBosses();
+  else if (infoTab==='powerups') drawInfoPowerups();
 
   drawButton(WIDTH/2-100, HEIGHT-60, 200, 44, 'Back', ()=>{ toMain(); });
 }
@@ -1559,6 +1567,36 @@ function drawInfoBosses(){
   }
 }
 
+function drawInfoPowerups(){
+  ctx.textAlign='left'; ctx.font=`bold ${20*uiScale}px system-ui, sans-serif`;
+  let y=160; ctx.fillText('Powerups',40,y); y+=20;
+  ctx.font=`${14*uiScale}px system-ui, sans-serif`; ctx.textBaseline='middle';
+  const list=[
+    {type:'hp', label:'Health', desc:'Restores some HP.'},
+    {type:'shield', label:'Shield', desc:'Grants a temporary shield.'},
+    {type:'rainbow', label:'Rainbow', desc:'Boosts speed and firepower briefly.'}
+  ];
+  for (let p of list){
+    y+=44;
+    if (p.type==='hp' || p.type==='shield'){
+      ctx.fillStyle = p.type==='hp' ? '#5f5' : '#55f';
+      ctx.beginPath(); ctx.arc(60,y-10,10,0,Math.PI*2); ctx.fill();
+    } else if (p.type==='rainbow'){
+      const hue=(uiTime*200)%360; ctx.fillStyle=`hsl(${hue},100%,60%)`;
+      ctx.beginPath();
+      for(let i=0;i<5;i++){
+        const ang=-Math.PI/2 + i*2*Math.PI/5;
+        ctx.lineTo(60 + Math.cos(ang)*10, y-10 + Math.sin(ang)*10);
+        const ang2=ang + Math.PI/5;
+        ctx.lineTo(60 + Math.cos(ang2)*5, y-10 + Math.sin(ang2)*5);
+      }
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = COLORS.hud;
+    ctx.fillText(`${p.label}: ${p.desc}`,100,y);
+  }
+}
+
 function drawBossPreview(type,x,y){
   const info = ENEMY_TYPES[type];
   const size = info.size, color = info.color;
@@ -1603,19 +1641,23 @@ function drawBossPreview(type,x,y){
 
   ctx.beginPath();
   ctx.moveTo(0,-size);
-  ctx.lineTo(-size*0.8,0);
-  ctx.lineTo(0,size);
-  ctx.lineTo(size*0.8,0);
+  ctx.lineTo(-size*0.6,-size*0.2);
+  ctx.lineTo(-size*0.8,size*0.6);
+  ctx.lineTo(0,size*0.8);
+  ctx.lineTo(size*0.8,size*0.6);
+  ctx.lineTo(size*0.6,-size*0.2);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  // Extra boss visuals removed (triangle, circle, star)
+  // Cockpit
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(0,0,size*0.3,0,Math.PI*2); ctx.fill();
 
   ctx.fillStyle = color;
   ctx.shadowBlur = 12;
-  ctx.beginPath(); ctx.arc(-size*0.4, size*0.5, 3, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(size*0.4, size*0.5, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-size*0.4, size*0.55, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(size*0.4, size*0.55, 3, 0, Math.PI*2); ctx.fill();
   ctx.restore();
 }
 
