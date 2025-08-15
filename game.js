@@ -388,7 +388,7 @@ function showLevelComplete(){
     const sp = randRange(60,140);
     levelCompleteParticles.push({
       x: WIDTH/2,
-      y: HEIGHT/2 - 80,
+      y: HEIGHT/2 - 120,
       vx: Math.cos(a)*sp,
       vy: Math.sin(a)*sp,
       life: randRange(0.8,1.6),
@@ -1778,7 +1778,7 @@ function drawLevelComplete(){
   ctx.textAlign='center';
   ctx.textBaseline='middle';
   ctx.fillStyle=COLORS.hud;
-  ctx.translate(WIDTH/2, HEIGHT/2 - 80);
+  ctx.translate(WIDTH/2, HEIGHT/2 - 120);
   ctx.scale(scale, scale);
   ctx.font='bold 44px system-ui, sans-serif';
   ctx.fillText(msg, 0, 0);
@@ -1789,7 +1789,7 @@ function drawLevelComplete(){
   ctx.strokeStyle = `rgba(180,220,255,${1 - t/animDuration})`;
   ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.arc(WIDTH/2, HEIGHT/2 - 80, t*60, 0, Math.PI*2);
+  ctx.arc(WIDTH/2, HEIGHT/2 - 120, t*60, 0, Math.PI*2);
   ctx.stroke();
   ctx.restore();
 
