@@ -985,6 +985,8 @@ function drawEnemy(enemy){
       ctx.lineTo(tx*enemy.size + 4, enemy.size*1.1);
       ctx.closePath();
     }
+    ctx.fillStyle = enemy.color;
+    ctx.fill();
     ctx.stroke();
   } else {
     // Triangle pointing down
@@ -1649,6 +1651,8 @@ function drawBossPreview(type,x,y){
     ctx.lineTo(tx*size + 4, size*1.1);
     ctx.closePath();
   }
+  ctx.fillStyle = color;
+  ctx.fill();
   ctx.stroke();
   ctx.restore();
 }
