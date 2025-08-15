@@ -41,7 +41,7 @@ let shakeT=0, shakeA=0;
 // ui clock
 let uiTime = 0;
 let infoTab = 'general';
-let uiScale = window.innerWidth < 600 ? 1.5 : 1;
+let uiScale = window.innerWidth < 600 ? 2 : 1.25;
 
 /* ===========================
    Init
@@ -1417,7 +1417,7 @@ function drawAsteroid(a){
 
 function drawHUD(){
   ctx.save();
-  ctx.fillStyle = COLORS.hud; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.font = '16px system-ui, sans-serif';
+  ctx.fillStyle = COLORS.hud; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.font = `${16*uiScale}px system-ui, sans-serif`;
   if (state === 'playing'){
     hudChip(10, 10, `Score: ${score}`);
     hudChip(10, 40, `Level: ${currentLevel}-${currentWave}`);
@@ -1455,10 +1455,11 @@ function drawHUD(){
   ctx.restore();
 }
 function hudChip(x,y,text,right=false){
-  const pad=8; ctx.font='16px system-ui, sans-serif'; const w = ctx.measureText(text).width + pad*2; const h = 24;
+  const pad=8*uiScale; ctx.font=`${16*uiScale}px system-ui, sans-serif`; const w = ctx.measureText(text).width + pad*2; const h = 24*uiScale;
+  const ry = y*uiScale;
   const rx = right ? x - w : x;
   ctx.fillStyle = 'rgba(0,40,60,0.6)'; ctx.strokeStyle = 'rgba(155,255,255,0.35)'; ctx.lineWidth = 1.5;
-  roundRect(rx,y,w,h,8); ctx.fill(); ctx.stroke(); ctx.fillStyle = COLORS.hud; ctx.fillText(text, rx + pad, y + 4);
+  roundRect(rx,ry,w,h,8*uiScale); ctx.fill(); ctx.stroke(); ctx.fillStyle = COLORS.hud; ctx.fillText(text, rx + pad, ry + 4*uiScale);
 }
 function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
@@ -1472,7 +1473,7 @@ function drawMainMenu(){
     ctx.fillStyle = `rgba(155,255,255,${alpha})`; ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2); ctx.fill();
   }
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=COLORS.hud;
-  ctx.font='bold 52px system-ui, sans-serif'; ctx.fillText('Space Mini', WIDTH/2, 100);
+  ctx.font=`bold ${52*uiScale}px system-ui, sans-serif`; ctx.fillText('Space Mini', WIDTH/2, 100);
 
   const startY = 200;
   const gap = 80;
@@ -1490,14 +1491,14 @@ function drawMainMenu(){
   drawButton(WIDTH/2-140, startY + gap*3, 280, 44, 'Hangar', ()=>{ toHangar(); });
   drawButton(WIDTH/2-140, startY + gap*4, 280, 44, 'Info', ()=>{ toInfo(); });
 
-  ctx.fillStyle='rgba(180,220,240,0.7)'; ctx.font='14px system-ui, sans-serif';
+  ctx.fillStyle='rgba(180,220,240,0.7)'; ctx.font=`${14*uiScale}px system-ui, sans-serif`;
   ctx.fillText('5 Levels • 3 Waves Each • Epic Boss Battles', WIDTH/2, HEIGHT-40);
   ctx.fillText('Click once to enable audio', WIDTH/2, HEIGHT-20);
 }
 function drawInfo(){
   ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=COLORS.hud;
-  ctx.font='bold 46px system-ui, sans-serif'; ctx.fillText('Info', WIDTH/2, 70);
+  ctx.font=`bold ${46*uiScale}px system-ui, sans-serif`; ctx.fillText('Info', WIDTH/2, 70);
 
   drawToggleRow(WIDTH/2, 120, [
     {id:'general', label:'General'},
@@ -1514,7 +1515,7 @@ function drawInfo(){
 
 function drawInfoGeneral(){
   ctx.textAlign='left'; ctx.textBaseline='top';
-  ctx.font='16px system-ui, sans-serif';
+  ctx.font=`${16*uiScale}px system-ui, sans-serif`;
   const lines=[
     'Use Arrow keys to move and Space to shoot.',
     'Earn credits from enemies and spend them in the hangar.',
@@ -1526,9 +1527,9 @@ function drawInfoGeneral(){
 }
 
 function drawInfoShips(){
-  ctx.textAlign='left'; ctx.font='bold 20px system-ui, sans-serif';
+  ctx.textAlign='left'; ctx.font=`bold ${20*uiScale}px system-ui, sans-serif`;
   let y=160; ctx.fillText('Ships',40,y); y+=20;
-  ctx.font='14px system-ui, sans-serif'; ctx.textBaseline='middle';
+  ctx.font=`${14*uiScale}px system-ui, sans-serif`; ctx.textBaseline='middle';
   for (let ship of SHIPS){
     y+=44;
     ctx.save(); ctx.translate(60,y-10); ctx.scale(0.7,0.7);
@@ -1548,9 +1549,9 @@ function drawInfoShips(){
 }
 
 function drawInfoBosses(){
-  ctx.textAlign='left'; ctx.font='bold 20px system-ui, sans-serif';
+  ctx.textAlign='left'; ctx.font=`bold ${20*uiScale}px system-ui, sans-serif`;
   let y=160; ctx.fillText('Bosses',40,y); y+=20;
-  ctx.font='14px system-ui, sans-serif'; ctx.textBaseline='middle';
+  ctx.font=`${14*uiScale}px system-ui, sans-serif`; ctx.textBaseline='middle';
   for (let boss of BOSSES){
     y+=88;
     drawBossPreview(boss.type,60,y-20);
@@ -1621,14 +1622,14 @@ function drawBossPreview(type,x,y){
 function drawSettings(){
   ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=COLORS.hud;
-  ctx.font='bold 44px system-ui, sans-serif'; ctx.fillText('Settings', WIDTH/2, 100);
+  ctx.font=`bold ${44*uiScale}px system-ui, sans-serif`; ctx.fillText('Settings', WIDTH/2, 100);
 
-  ctx.font='18px system-ui, sans-serif'; ctx.fillText('Difficulty', WIDTH/2, 160);
+  ctx.font=`${18*uiScale}px system-ui, sans-serif`; ctx.fillText('Difficulty', WIDTH/2, 160);
   drawToggleRow(WIDTH/2, 190, [
     {id:'easy', label:'Easy'}, {id:'medium', label:'Medium'}, {id:'hard', label:'Hard'}
   ], difficulty, (id)=>{ if (DIFFS[id]) { difficulty=id; saveProgress(); } });
 
-  ctx.fillText('Audio', WIDTH/2, 270);
+  ctx.font=`${18*uiScale}px system-ui, sans-serif`; ctx.fillText('Audio', WIDTH/2, 270);
   drawToggleRow(WIDTH/2, 300, [
     {id:'music', label:`Music: ${musicOn?'ON':'OFF'}`},
     {id:'sfx', label:`SFX: ${sfxOn?'ON':'OFF'}`}
@@ -1642,8 +1643,8 @@ function drawHangar(){
   }
 
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillStyle=COLORS.hud; ctx.font='bold 46px system-ui, sans-serif'; ctx.fillText('Hangar', WIDTH/2, 70);
-  ctx.font='16px system-ui, sans-serif'; ctx.fillText('Drag to browse • Click to select • Buy or Upgrade', WIDTH/2, 104);
+  ctx.fillStyle=COLORS.hud; ctx.font=`bold ${46*uiScale}px system-ui, sans-serif`; ctx.fillText('Hangar', WIDTH/2, 70);
+  ctx.font=`${16*uiScale}px system-ui, sans-serif`; ctx.fillText('Drag to browse • Click to select • Buy or Upgrade', WIDTH/2, 104);
 
   const step = CARD_W + CARD_GAP;
   const startX = WIDTH/2 - CARD_W/2;
@@ -1701,14 +1702,14 @@ function drawShipCard(x,y,ship,focused){
   ctx.restore();
 
   ctx.fillStyle = COLORS.hud; ctx.textAlign = 'center';
-  ctx.font = 'bold 18px system-ui, sans-serif'; ctx.fillText(ship.name, CARD_W/2, 24);
-  ctx.font = '14px system-ui, sans-serif'; ctx.fillText(owned.has(ship.id)?'OWNED':`COST: ${ship.cost}`, CARD_W/2, CARD_H - 26);
+  ctx.font = `bold ${18*uiScale}px system-ui, sans-serif`; ctx.fillText(ship.name, CARD_W/2, 24);
+  ctx.font = `${14*uiScale}px system-ui, sans-serif`; ctx.fillText(owned.has(ship.id)?'OWNED':`COST: ${ship.cost}`, CARD_W/2, CARD_H - 26);
   if (selectedShipId === ship.id) { ctx.fillStyle = '#9ff'; ctx.fillText('SELECTED', CARD_W/2, CARD_H - 46); }
   ctx.fillStyle = COLORS.hud;
-  ctx.font = '12px system-ui, sans-serif';
+  ctx.font = `${12*uiScale}px system-ui, sans-serif`;
   ctx.fillText(`Level ${level}`, CARD_W/2, 120);
 
-  ctx.font = '12px system-ui, sans-serif';
+  ctx.font = `${12*uiScale}px system-ui, sans-serif`;
   ctx.fillStyle = 'rgba(180,220,240,0.8)';
   const stats = statsFor(ship, level);
   ctx.fillText(`HP: ${stats.hp} | Speed: ${(stats.speedMul*100).toFixed(0)}%`, CARD_W/2, 140);
@@ -1780,7 +1781,7 @@ function drawLevelComplete(){
   ctx.fillStyle=COLORS.hud;
   ctx.translate(WIDTH/2, HEIGHT/2 - 120);
   ctx.scale(scale, scale);
-  ctx.font='bold 44px system-ui, sans-serif';
+  ctx.font=`bold ${44*uiScale}px system-ui, sans-serif`;
   ctx.fillText(msg, 0, 0);
   ctx.restore();
 
@@ -1812,7 +1813,7 @@ function drawLevelComplete(){
 function drawPause(){
   ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
   ctx.fillStyle=COLORS.hud; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.font='bold 44px system-ui, sans-serif'; ctx.fillText('Paused', WIDTH/2, HEIGHT/2 - 140);
+  ctx.font=`bold ${44*uiScale}px system-ui, sans-serif`; ctx.fillText('Paused', WIDTH/2, HEIGHT/2 - 140);
   drawButton(WIDTH/2-110, HEIGHT/2 - 80, 220, 40, 'Resume', ()=>{ resumeGame(); });
   drawButton(WIDTH/2-110, HEIGHT/2, 220, 40, 'Save Game', ()=>{ saveGameState(); });
   drawButton(WIDTH/2-110, HEIGHT/2 + 80, 220, 40, 'Hangar', ()=>{ toHangar('paused'); });
@@ -1821,17 +1822,17 @@ function drawPause(){
 function drawGameOver(){
   ctx.fillStyle='rgba(0,0,10,0.65)'; ctx.fillRect(0,0,WIDTH,HEIGHT);
   ctx.fillStyle = COLORS.warning; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.font = 'bold 44px system-ui, sans-serif'; 
+  ctx.font = `bold ${44*uiScale}px system-ui, sans-serif`;
   
   if (currentLevel >= MAX_LEVELS && currentWave > WAVES_PER_LEVEL){
     ctx.fillText('Victory!', WIDTH/2, HEIGHT/2 - 56);
-    ctx.fillStyle = COLORS.hud; ctx.font = '20px system-ui, sans-serif';
+    ctx.fillStyle = COLORS.hud; ctx.font = `${20*uiScale}px system-ui, sans-serif`;
     ctx.fillText('All levels completed!', WIDTH/2, HEIGHT/2 - 20);
   } else {
     ctx.fillText('Game Over', WIDTH/2, HEIGHT/2 - 56);
   }
   
-  ctx.fillStyle = COLORS.hud; ctx.font = '20px system-ui, sans-serif';
+  ctx.fillStyle = COLORS.hud; ctx.font = `${20*uiScale}px system-ui, sans-serif`;
   ctx.fillText('Final Score: ' + score, WIDTH/2, HEIGHT/2 + 0);
   drawButton(WIDTH/2 - 110, HEIGHT/2 + 50, 220, 40, 'Main Menu', ()=>{ toMain(); });
 }
