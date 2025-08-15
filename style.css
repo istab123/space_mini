@@ -26,12 +26,12 @@ canvas { background:#000; display:block; border-radius:16px; box-shadow:
   color:#fff;
   font:32px system-ui, sans-serif;
   z-index:1000;
-  animation:start-fade 2s forwards;
+  animation:start-fade 4s forwards;
   pointer-events:none;
 }
 @keyframes start-fade {
   0% { opacity:1; }
-  70% { opacity:1; }
+  85% { opacity:1; }
   100% { opacity:0; visibility:hidden; }
 }
 
