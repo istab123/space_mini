@@ -1,0 +1,27 @@
+:root{
+  --boss-red: #ff3b3b;
+  --boss-glow-1: rgba(255, 59, 59, 0.9);
+  --boss-glow-2: rgba(255, 59, 59, 0.35);
+}
+
+/* reusable glow for SVG or <img> */
+.boss-neon {
+  filter:
+    drop-shadow(0 0 6px var(--boss-glow-1))
+    drop-shadow(0 0 18px var(--boss-glow-2));
+}
+
+/* slow menace pulse */
+@keyframes boss-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px var(--boss-glow-1)) drop-shadow(0 0 18px var(--boss-glow-2)); opacity: 1; }
+  50% { transform: scale(1.04); filter: drop-shadow(0 0 12px var(--boss-glow-1)) drop-shadow(0 0 28px var(--boss-glow-2)); opacity: 0.95; }
+}
+.boss-pulse { animation: boss-pulse 1.8s ease-in-out infinite; }
+
+/* tiny flicker for thrusters when used in-game as <img> */
+@keyframes thruster-flicker {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--boss-glow-1)) drop-shadow(0 0 18px var(--boss-glow-2)); }
+  50% { filter: drop-shadow(0 0 10px var(--boss-glow-1)) drop-shadow(0 0 24px var(--boss-glow-2)); }
+}
+.boss-thrusters { animation: thruster-flicker 0.25s ease-in-out infinite; }
+

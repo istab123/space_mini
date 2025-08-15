@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- main hull -->
+  <path d="M48 10 L60 36 L60 56 L72 64 L76 84 L48 74 L20 84 L24 64 L36 56 L36 36 Z"
+        stroke="#FF3B3B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- cockpit -->
+  <path d="M48 18 L54 34 L42 34 Z" stroke="#FF3B3B" stroke-width="4" stroke-linejoin="round"/>
+  <!-- wing cutouts -->
+  <path d="M36 44 L30 52 M60 44 L66 52" stroke="#FF3B3B" stroke-width="4" stroke-linecap="round"/>
+  <!-- center panel -->
+  <path d="M48 40 L48 56" stroke="#FF3B3B" stroke-width="4" stroke-linecap="round"/>
+  <!-- thrusters -->
+  <path d="M36 64 L32 74 M60 64 L64 74 M48 66 L48 76" stroke="#FF3B3B" stroke-width="4" stroke-linecap="round"/>
+  <!-- aura ticks -->
+  <g stroke="#FF3B3B" stroke-width="4" stroke-linecap="round" opacity="0.9">
+    <path d="M48 4 v6"/>
+    <path d="M21 17 l5 4"/>
+    <path d="M75 17 l-5 4"/>
+    <path d="M12 40 h6"/>
+    <path d="M84 40 h-6"/>
+  </g>
+</svg>
