@@ -23,6 +23,12 @@
       navigator.serviceWorker.register('service-worker.js');
     }
 
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(err => {
+        console.warn('Orientation lock failed:', err);
+      });
+    }
+
     let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
     window.addEventListener('beforeinstallprompt', (e) => {
