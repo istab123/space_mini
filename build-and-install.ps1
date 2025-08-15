@@ -1,39 +1,42 @@
-# Paths & Variables
-$KEYSTORE_PATH = "$PSScriptRoot\keystore.jks"
-$STORE_PASS    = "passwort"
-$KEY_ALIAS     = "spaceMiniKey"
-$KEY_PASS      = "passwort"
-$APK_PATH      = "$PSScriptRoot\android\app\build\outputs\apk\release\app-release.apk"
+# build-and-install.ps1 (no -P flags, uses Gradle signing config)
+$ErrorActionPreference = "Stop"
 
-Write-Host "=== Starting build process ===" -ForegroundColor Cyan
+# Ensure Java 21 in this shell
+if (-not (Test-Path "C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot\bin\java.exe")) {
+    Write-Warning "JDK 21 not found at default path. If Gradle errors, set JAVA_HOME to your JDK 21."
+}
+$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot"
+$env:ORG_GRADLE_JAVA_HOME = $env:JAVA_HOME
 
-# 1) Build Vite App
-Write-Host "Building Vite app..." -ForegroundColor Yellow
+# 1) Build web
+Write-Host "Building Vite app..." -ForegroundColor Cyan
 npm run build:web
-if ($LASTEXITCODE -ne 0) { throw "Vite build failed." }
+if ($LASTEXITCODE -ne 0) { throw "Vite build failed" }
 
-# 2) Copy to Android project
-Write-Host "Copying web assets to native project..." -ForegroundColor Yellow
+# 2) Copy assets into Android project
+Write-Host "Copying web assets..." -ForegroundColor Cyan
 npx cap copy android
-if ($LASTEXITCODE -ne 0) { throw "Capacitor copy failed." }
+if ($LASTEXITCODE -ne 0) { throw "Capacitor copy failed" }
 
-# 3) Build signed APK
-Write-Host "Building signed APK..." -ForegroundColor Yellow
-.\android\gradlew.bat -p .\android assembleRelease `
-  -Pandroid.injected.signing.store.file=$KEYSTORE_PATH `
-  -Pandroid.injected.signing.store.password=$STORE_PASS `
-  -Pandroid.injected.signing.key.alias=$KEY_ALIAS `
-  -Pandroid.injected.signing.key.password=$KEY_PASS
+# 3) Assemble release (signing from build.gradle)
+Write-Host "Assembling signed release APK..." -ForegroundColor Cyan
+& ".\android\gradlew.bat" "-p" ".\android" assembleRelease
+if ($LASTEXITCODE -ne 0) { throw "Gradle release build failed" }
 
-if ($LASTEXITCODE -ne 0) { throw "Gradle release build failed." }
+# 4) Install to device
+$apk = Get-ChildItem ".\android\app\build\outputs\apk\release" -Filter "*.apk" | Select-Object -First 1
+if (-not $apk) { throw "No APK found in release output" }
 
-# 4) Install APK on connected device
-if (Test-Path $APK_PATH) {
-    Write-Host "Installing APK to connected device..." -ForegroundColor Yellow
-    adb install -r $APK_PATH
-    if ($LASTEXITCODE -ne 0) { throw "APK installation failed." }
-    Write-Host "=== Done! APK installed on device. ===" -ForegroundColor Green
-} else {
-    throw "APK not found at $APK_PATH"
+Write-Host "Installing APK on connected device..." -ForegroundColor Cyan
+# Try normal install; if signatures changed, uninstall then reinstall
+& adb install -r $apk.FullName
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Initial install failed. Trying uninstall → reinstall..."
+    # package name must match your appId in capacitor.config.ts; adjust if needed
+    $pkg = "com.example.spacemini"
+    & adb uninstall $pkg | Out-Null
+    & adb install $apk.FullName
+    if ($LASTEXITCODE -ne 0) { throw "ADB install failed" }
 }
 
+Write-Host "Done! Installed: $($apk.FullName)" -ForegroundColor Green
