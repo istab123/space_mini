@@ -960,14 +960,13 @@ function drawEnemy(enemy){
   }
 
   // Ship body
-  ctx.fillStyle = enemy.color + '60';
   ctx.strokeStyle = enemy.color;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = isBoss ? 3 : 2;
   ctx.shadowColor = enemy.color;
-  ctx.shadowBlur = 10;
-  
+  ctx.shadowBlur = isBoss ? 20 : 10;
+
   if (isBoss){
-    // Spaceship body with wings
+    // Spaceship outline with wings
     ctx.beginPath();
     ctx.moveTo(0, -enemy.size);
     ctx.lineTo(-enemy.size*0.6, -enemy.size*0.2);
@@ -976,6 +975,17 @@ function drawEnemy(enemy){
     ctx.lineTo(enemy.size*0.8, enemy.size*0.6);
     ctx.lineTo(enemy.size*0.6, -enemy.size*0.2);
     ctx.closePath();
+    ctx.stroke();
+
+    // Thrusters
+    ctx.beginPath();
+    for (const tx of [-0.4,0,0.4]){
+      ctx.moveTo(tx*enemy.size, enemy.size*0.8);
+      ctx.lineTo(tx*enemy.size - 4, enemy.size*1.1);
+      ctx.lineTo(tx*enemy.size + 4, enemy.size*1.1);
+      ctx.closePath();
+    }
+    ctx.stroke();
   } else {
     // Triangle pointing down
     ctx.beginPath();
@@ -983,28 +993,13 @@ function drawEnemy(enemy){
     ctx.lineTo(-enemy.size*0.7, -enemy.size);
     ctx.lineTo(enemy.size*0.7, -enemy.size);
     ctx.closePath();
-  }
-
-  ctx.fill();
-  ctx.stroke();
-
-  if (isBoss){
-    // Cockpit
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(0,0,enemy.size*0.3,0,Math.PI*2);
+    ctx.fillStyle = enemy.color + '60';
     ctx.fill();
-  }
+    ctx.stroke();
 
-  // Engine glow
-  ctx.fillStyle = enemy.color;
-  ctx.shadowBlur = 8;
-  if (isBoss){
-    ctx.beginPath();
-    ctx.arc(-enemy.size*0.4, enemy.size*0.55, 3, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath();
-    ctx.arc(enemy.size*0.4, enemy.size*0.55, 3, 0, Math.PI*2); ctx.fill();
-  } else {
+    // Engine glow
+    ctx.fillStyle = enemy.color;
+    ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.arc(0, -enemy.size*0.6, 2, 0, Math.PI*2);
     ctx.fill();
@@ -1557,13 +1552,14 @@ function drawInfoShips(){
 }
 
 function drawInfoBosses(){
-  ctx.textAlign='left'; ctx.font=`bold ${20*uiScale}px system-ui, sans-serif`;
-  let y=160; ctx.fillText('Bosses',40,y); y+=20;
+  ctx.textAlign='center';
+  ctx.font=`bold ${20*uiScale}px system-ui, sans-serif`;
+  let y=160; ctx.fillText('Bosses',WIDTH/2,y); y+=20;
   ctx.font=`${14*uiScale}px system-ui, sans-serif`; ctx.textBaseline='middle';
   for (let boss of BOSSES){
-    y+=88;
-    drawBossPreview(boss.type,60,y-20);
-    ctx.fillText(`${boss.name}: ${boss.desc}`,100,y);
+    y+=110;
+    drawBossPreview(boss.type,WIDTH/2,y-40);
+    ctx.fillText(`${boss.name}: ${boss.desc}`,WIDTH/2,y);
   }
 }
 
@@ -1630,10 +1626,6 @@ function drawBossPreview(type,x,y){
   ctx.restore();
 
   ctx.rotate(Date.now()/1500);
-  const gradient = ctx.createRadialGradient(0,0,0,0,0,size);
-  gradient.addColorStop(0,color);
-  gradient.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle = gradient;
   ctx.strokeStyle = color;
   ctx.lineWidth = 3;
   ctx.shadowColor = color;
@@ -1647,17 +1639,17 @@ function drawBossPreview(type,x,y){
   ctx.lineTo(size*0.8,size*0.6);
   ctx.lineTo(size*0.6,-size*0.2);
   ctx.closePath();
-  ctx.fill();
   ctx.stroke();
 
-  // Cockpit
-  ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(0,0,size*0.3,0,Math.PI*2); ctx.fill();
-
-  ctx.fillStyle = color;
-  ctx.shadowBlur = 12;
-  ctx.beginPath(); ctx.arc(-size*0.4, size*0.55, 3, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(size*0.4, size*0.55, 3, 0, Math.PI*2); ctx.fill();
+  // Thrusters
+  ctx.beginPath();
+  for (const tx of [-0.4,0,0.4]){
+    ctx.moveTo(tx*size, size*0.8);
+    ctx.lineTo(tx*size - 4, size*1.1);
+    ctx.lineTo(tx*size + 4, size*1.1);
+    ctx.closePath();
+  }
+  ctx.stroke();
   ctx.restore();
 }
 
